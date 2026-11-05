@@ -148,14 +148,14 @@ symbol_state:
     defb 0
 
 kb_map:
-    defb $FE, KEY_CAPS_SHIFT, 'Z', 'X', 'c', 'V'
-    defb $FD, 'a', 'S', 'd', 'F', 'G'
-    defb $FB, 'Q', 'W', 'e', 'R', 'T'
+    defb $FE, KEY_CAPS_SHIFT, 'Z', 'X', 'C', 'V'
+    defb $FD, 'A', 'S', 'D', 'F', 'G'
+    defb $FB, 'Q', 'W', 'E', 'R', 'T'
     defb $F7, '1', '2', '3', '4', '5'
     defb $EF, '0', '9', '8', '7', '6'
     defb $DF, 'P', 'O', 'I', 'U', 'Y'
     defb $BF, KEY_ENTER, 'L', 'K', 'J', 'H'
-    defb $7F, KEY_SPACE, KEY_SYMBOL, 'M', 'N', 'b'
+    defb $7F, KEY_SPACE, KEY_SYMBOL, 'M', 'N', 'B'
 
 symbol_map:
     defb '1', '!'
