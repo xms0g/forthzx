@@ -47,7 +47,7 @@ _parse_input:
     ld e, a
     ld d, 0
 
-    ld hl, buffer
+    ld hl, input_buffer
     add hl, de
     ; put null terminator
     ld (hl), 0 
@@ -55,7 +55,7 @@ _parse_input:
     ; compare input with command map
     ld de, cmd_map
 _next_cmd:
-    ld hl, buffer
+    ld hl, input_buffer
 
 _cmp_loop:
     ld a, (de)
@@ -86,7 +86,7 @@ _next:
     jr z, _unknown
     jr _next_cmd
 _unknown:
-    ld hl, buffer
+    ld hl, input_buffer
     ; check if the first character is a digit
     ld a, (hl)
     cp 48 
@@ -127,7 +127,7 @@ _cmd_dot:
 _cmd_unknown:
     ld a, 13
     call print_char
-    ld hl, buffer
+    ld hl, input_buffer
     call print_str
     ld a, ' '
     call print_char
@@ -145,13 +145,13 @@ _done:
 forth_input:
     ld b, a
 
-    ; Check buffer capacity
+    ; Check input_buffer capacity
     ld a, (input_length)
     cp INPUT_SIZE-1
     ret nc
 
     ; hl = input_buffer + input_length
-    ld hl, buffer
+    ld hl, input_buffer
     ld e, a
     ld d, 0
     add hl, de
@@ -177,7 +177,7 @@ clear_buffer:
     or a                    
     ret z                  
 
-    ld hl, buffer          
+    ld hl, input_buffer          
 _loop:
     ld (hl), 0             
     inc hl                 
@@ -203,7 +203,7 @@ shell:
 input_length:
     defb 0
 
-buffer:
+input_buffer:
     defs INPUT_SIZE, 0
 
 end $8000
