@@ -15,7 +15,7 @@ PUT_NULL_TERM macro addr
     ld (addr), a
 endm
 
-PUSH_VAR macro
+PUSH_OPER macro
     PUT_NULL_TERM bc
 
     ld bc, operand_buffer
@@ -125,14 +125,14 @@ _check_n_loop:
     jr _check_n_loop
 
 _handle_var:
-    PUSH_VAR
-    jr _done
+    PUSH_OPER
+    jp _done
 
 _handle_space:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
     
-    PUSH_VAR
+    PUSH_OPER
 
     ld hl, (input_buffer_ptr)
     inc hl
@@ -145,6 +145,15 @@ _dispatch:
     cp CMD_PLUS
     jr z, _cmd_plus 
 
+    cp CMD_MINUS
+    jr z, _cmd_minus
+
+    cp CMD_MULT
+    jr z, _cmd_mult
+
+    cp CMD_DIV
+    jr z, _cmd_div
+
     cp CMD_DOT
     jr z, _cmd_dot
 
@@ -154,6 +163,47 @@ _cmd_plus:
     add hl, bc
     push hl
     jr _done
+
+_cmd_minus:
+    pop bc
+    pop hl
+    and a
+    sbc hl, bc
+    push hl
+    jr _done
+
+_cmd_mult:
+    pop bc
+    pop de
+    ld hl, 0  
+      
+    ld a, b
+    or c
+    jr z, _mul_done
+_mul_loop:
+    add hl, de
+    dec bc
+    ld a, b
+    or c
+    jr nz, _mul_loop
+_mul_done:
+    push hl
+    jr _done
+
+_cmd_div:
+    pop bc
+    pop hl
+    ld de, 0
+_div_loop:
+    and a
+    sbc hl, bc
+    jr c, _div_done
+    inc de
+    jr _div_loop
+_div_done:
+    push de
+    jr _done
+
 _cmd_dot:
     ld a, 13
     call print_char
@@ -162,6 +212,7 @@ _cmd_dot:
     call str_itoa
     call print_str
     jr _done
+
 _cmd_unknown:
     ld a, 13
     call print_char
