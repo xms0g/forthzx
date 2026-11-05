@@ -17,23 +17,23 @@ CMD_UNKNOWN equ 8
     include "keyboard.asm"
     
 start:
-    ld HL, shell
+    ld hl, shell
     call print_str
 _loop:
     call kb_poll
-    or A
+    or a
     jr z, _loop
     
     call kb_read
     cp KEY_ENTER
     jr z, _parse_input
     
-    or A
+    or a
     call nz, forth_input
     jr _wait_release
 
 _parse_done:
-    ld HL, shell
+    ld hl, shell
     call print_str
 
 _wait_release:
@@ -43,52 +43,52 @@ _wait_release:
     jr _loop
 
 _parse_input:
-    ld A, (input_length)
-    ld E, A
-    ld D, 0
+    ld a, (input_length)
+    ld e, a
+    ld d, 0
 
-    ld HL, buffer
-    add HL, DE
+    ld hl, buffer
+    add hl, de
     ; put null terminator
-    ld (HL), 0 
+    ld (hl), 0 
 
     ; compare input with command map
-    ld DE, cmd_map
+    ld de, cmd_map
 _next_cmd:
-    ld HL, buffer
+    ld hl, buffer
 
 _cmp_loop:
-    ld A, (DE)
-    cp (HL)
+    ld a, (de)
+    cp (hl)
     jr nz, _next
 
-    or A
+    or a
     jr z, _dispatch
 
-    inc HL
-    inc DE
+    inc hl
+    inc de
     
-    ld A, (HL)
+    ld a, (hl)
     cp KEY_SPACE
     ; TODO
     jr _cmp_loop
 _next:
     ; Skip the remaining characters of this command
-    ld A, (DE)
-    inc DE
-    or A
+    ld a, (de)
+    inc de
+    or a
     jr nz, _next
 
-    inc DE
-    ; DE now points to the next command
-    ld A, (DE)
-    or A
+    inc de
+    ; de now points to the next command
+    ld a, (de)
+    or a
     jr z, _unknown
     jr _next_cmd
 _unknown:
-    ld HL, buffer
+    ld hl, buffer
     ; check if the first character is a digit
-    ld A, (HL)
+    ld a, (hl)
     cp 48 
     ; if the result is negative,he first character is less than '0'
     jp m, _cmd_unknown
@@ -97,12 +97,12 @@ _unknown:
     ; if the result is positive, the first character is greater than '9'
     jp p, _cmd_unknown
     call str_atoi
-    push HL
+    push hl
     jr _done
 
 _dispatch:
-    inc DE
-    ld A, (DE)
+    inc de
+    ld a, (de)
 
     cp CMD_PLUS
     jr z, _cmd_plus 
@@ -111,80 +111,80 @@ _dispatch:
     jr z, _cmd_dot
 
 _cmd_plus:
-    pop BC
-    pop HL
-    add HL, BC
-    push HL
+    pop bc
+    pop hl
+    add hl, bc
+    push hl
     jr _done
 _cmd_dot:
-    ld A, 13
+    ld a, 13
     call print_char
 
-    pop HL
+    pop hl
     call str_itoa
     call print_str
     jr _done
 _cmd_unknown:
-    ld A, 13
+    ld a, 13
     call print_char
-    ld HL, buffer
+    ld hl, buffer
     call print_str
-    ld A, ' '
+    ld a, ' '
     call print_char
-    ld A, '?'
+    ld a, '?'
     call print_char
-    ld A, 13
+    ld a, 13
     call print_char
 _done:    
     call clear_buffer
     jp _parse_done
 
 ;------------------------
-; A=char                ;
+; a=char                ;
 ;------------------------
 forth_input:
-    ld B, A
+    ld b, a
 
     ; Check buffer capacity
-    ld A, (input_length)
+    ld a, (input_length)
     cp INPUT_SIZE-1
     ret nc
 
-    ; HL = input_buffer + input_length
-    ld HL, buffer
-    ld E, A
-    ld D, 0
-    add HL, DE
+    ; hl = input_buffer + input_length
+    ld hl, buffer
+    ld e, a
+    ld d, 0
+    add hl, de
 
     ; Store character
-    ld (HL), B
+    ld (hl), b
 
     ; Increment input length
-    ld A, (input_length)
-    inc A
-    ld (input_length), A
+    ld a, (input_length)
+    inc a
+    ld (input_length), a
 
     ; Print character
-    ld A, B
+    ld a, b
     call print_char
     ret
 
 clear_buffer:
-    ld HL, input_length
-    ld B, (HL)
+    ld hl, input_length
+    ld b, (hl)
     
-    ld A, B              
-    or A                    
+    ld a, b              
+    or a                    
     ret z                  
 
-    ld HL, buffer          
+    ld hl, buffer          
 _loop:
-    ld (HL), 0             
-    inc HL                 
+    ld (hl), 0             
+    inc hl                 
     djnz _loop        
     
-    xor A                   
-    ld (input_length), A 
+    xor a                   
+    ld (input_length), a 
     ret
 
 cmd_map:
@@ -205,6 +205,5 @@ input_length:
 
 buffer:
     defs INPUT_SIZE, 0
-
 
 end $8000

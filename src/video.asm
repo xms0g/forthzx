@@ -1,19 +1,19 @@
 ; ---------------
-; A = char      ;
+; a=char        ;
 ; ---------------
 print_char:
     rst $10
     ret
 ; ---------------
-; HL=str      ;
+; hl=str        ;
 ; ---------------
 print_str:
 _loop:
-    ld A, (HL)
+    ld a, (hl)
     cp 0
     jr z, _done
     call print_char
-    inc HL
+    inc hl
     jr _loop
 _done:
     ret

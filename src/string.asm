@@ -2,122 +2,122 @@ BYTE_LENGTH equ 4
 
 ;-------------------------------------------;
 ; Input:                                    ;
-;   HL = address of null-terminated string  ;
+;   hl = address of null-terminated string  ;
 ;                                           ;
 ; Output:                                   ;
-;   HL = parsed 16-bit integer              ;
+;   hl = parsed 16-bit integer              ;
 ;-------------------------------------------;
 
 str_atoi:
-    ld DE, 0
+    ld de, 0
 
 _loop:
-    ld A, (HL)
-    or A
+    ld a, (hl)
+    or a
     jr z, _done
 
     sub '0'
-    ld B, A
+    ld b, a
 
-    ; DE = DE * 10
-    push HL
-    ld H, D
-    ld L, E
+    ; de = de * 10
+    push hl
+    ld h, d
+    ld l, e
 
-    add HL, HL       ; *2
-    push HL
-    add HL, HL       ; *4
-    add HL, HL       ; *8
-    pop DE
-    add HL, DE       ; *10
+    add hl, hl       ; *2
+    push hl
+    add hl, hl       ; *4
+    add hl, hl       ; *8
+    pop de
+    add hl, de       ; *10
 
-    ld D, H
-    ld E, L
+    ld d, h
+    ld e, l
 
-    ; DE += digit
-    ld A, E
-    add A, B
-    ld E, A
+    ; de += digit
+    ld a, e
+    add a, b
+    ld e, a
     jr nc, _next
-    inc D
+    inc d
 
 _next:
-    pop HL
-    inc HL
+    pop hl
+    inc hl
     jr _loop
 
 _done:
-    ex DE, HL
+    ex de, hl
     ret
 
 ;-------------------------------------------;
 ; Input:                                    ;
-;   L = 8-bit integer to convert to string  ;
+;   l = 8-bit integer to convert to string  ;
 ;                                           ;
 ; Output:                                   ;
-;   HL = address of null-terminated string  ;     
+;   hl = address of null-terminated string  ;     
 ;-------------------------------------------;
 str_itoa:
-    ld B, L
-    ld C, 0
-    ld HL, byte_str
+    ld b, l
+    ld c, 0
+    ld hl, byte_str
 _hundreds:
-    ld A, B
+    ld a, b
     cp 100
     jr c, _tens
 
     sub 100
-    ld B, A
-    inc C
+    ld b, a
+    inc c
     jr _hundreds
 
 _tens:
-    ld A, C
-    or A
+    ld a, c
+    or a
     jr z, _save_tens
 
-    add A, '0'
-    ld (HL), A
-    inc HL
+    add a, '0'
+    ld (hl), a
+    inc hl
 
 _save_tens:
-    ld C, 0
+    ld c, 0
 _tens_loop:
-    ld A, B
+    ld a, b
     cp 10
     jr c, _units
 
     sub 10
-    ld B, A
-    inc C
+    ld b, a
+    inc c
     jr _tens_loop
 
 _units:
-    ld A, C
-    or A
+    ld a, c
+    or a
     jr nz, _save_tens_digit
 
     ; Save units
-    ld A, B
-    add A, '0'
-    ld (HL), A
-    inc HL
+    ld a, b
+    add a, '0'
+    ld (hl), a
+    inc hl
 
     jr _done
 _save_tens_digit:
-    ld A, C
-    add A, '0'
-    ld (HL), A
-    inc HL
+    ld a, c
+    add a, '0'
+    ld (hl), a
+    inc hl
 
-    ld A, B
-    add A, '0'
-    ld (HL), A
-    inc HL
+    ld a, b
+    add a, '0'
+    ld (hl), a
+    inc hl
 _done:
-    xor A
-    ld (HL), A
-    ld HL, byte_str
+    xor a
+    ld (hl), a
+    ld hl, byte_str
     ret
 
 byte_str:
