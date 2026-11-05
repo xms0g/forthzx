@@ -28,7 +28,8 @@ _loop:
     cp KEY_ENTER
     jr z, _parse_input
     
-    call forth_input
+    or A
+    call nz, forth_input
     jr _wait_release
 
 _parse_done:
