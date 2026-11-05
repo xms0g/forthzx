@@ -9,6 +9,21 @@ CMD_DOT     equ 5
 CMD_2DOT    equ 6
 CMD_DUP     equ 7
 CMD_UNKNOWN equ 8
+
+PUT_NULL_TERM macro addr
+    xor a
+    ld (addr), a
+endm
+
+PUSH_VAR macro
+    PUT_NULL_TERM bc
+
+    ld bc, operand_buffer
+    push bc
+    pop hl
+    call str_atoi
+    push hl
+endm
     
     jp start
 
@@ -49,8 +64,8 @@ _parse_input:
 
     ld hl, input_buffer
     add hl, de
-    ; put null terminator
-    ld (hl), 0 
+  
+    PUT_NULL_TERM hl
 
     ; compare input with command map
     ld de, cmd_map
@@ -68,9 +83,6 @@ _cmp_loop:
     inc hl
     inc de
     
-    ld a, (hl)
-    cp KEY_SPACE
-    ; TODO
     jr _cmp_loop
 _next:
     ; Skip the remaining characters of this command
@@ -86,19 +98,45 @@ _next:
     jr z, _unknown
     jr _next_cmd
 _unknown:
-    ld hl, input_buffer
-    ; check if the first character is a digit
+    ld bc, operand_buffer
+_check_n_loop:
     ld a, (hl)
+    
+    ; check if the character is space
+    cp KEY_SPACE
+    jr z, _handle_space
+
+    ; check if the character is a digit
     cp 48 
-    ; if the result is negative,he first character is less than '0'
+    ; if the result is negative, the character is less than '0'
     jp m, _cmd_unknown
     
     cp 57
-    ; if the result is positive, the first character is greater than '9'
+    ; if the result is positive, the character is greater than '9'
     jp p, _cmd_unknown
-    call str_atoi
-    push hl
+    ; save the digit
+    ld (bc), a
+    inc bc
+    inc hl
+    ; if it's null terminator, push it
+    ld a, (hl)
+    cp 0
+    jr z, _handle_var
+    jr _check_n_loop
+
+_handle_var:
+    PUSH_VAR
     jr _done
+
+_handle_space:
+    ; save the buffer ptr
+    ld (input_buffer_ptr), hl
+    
+    PUSH_VAR
+
+    ld hl, (input_buffer_ptr)
+    inc hl
+    jr _cmp_loop
 
 _dispatch:
     inc de
@@ -205,5 +243,11 @@ input_length:
 
 input_buffer:
     defs INPUT_SIZE, 0
+
+input_buffer_ptr:
+    defw 0
+
+operand_buffer:
+    defs 4, 0
 
 end $8000

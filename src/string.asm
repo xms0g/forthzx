@@ -115,8 +115,7 @@ _save_tens_digit:
     ld (hl), a
     inc hl
 _done:
-    xor a
-    ld (hl), a
+    PUT_NULL_TERM hl
     ld hl, byte_str
     ret
 
