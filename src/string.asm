@@ -61,6 +61,17 @@ str_itoa:
     ld b, l
     ld c, 0
     ld hl, byte_str
+
+    bit 7, b
+    jr z, _hundreds
+
+    ld a, '-'
+    ld (hl), a
+    inc hl
+
+    xor a
+    sub b
+    ld b, a
 _hundreds:
     ld a, b
     cp 100

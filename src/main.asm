@@ -15,7 +15,7 @@ PUT_NULL_TERM macro addr
     ld (addr), a
 endm
 
-PUSH_OPER macro
+PUSH_OPERAND macro
     PUT_NULL_TERM bc
 
     ld bc, operand_buffer
@@ -34,10 +34,10 @@ endm
 start:
     ld hl, shell
     call print_str
-_loop:
+_l:
     call kb_poll
     or a
-    jr z, _loop
+    jr z, _l
     
     call kb_read
     cp KEY_ENTER
@@ -55,7 +55,7 @@ _wait_release:
     call kb_poll
     jr nz, _wait_release
 
-    jr _loop
+    jr _l
 
 _parse_input:
     ld a, (input_length)
@@ -72,7 +72,7 @@ _parse_input:
 _next_cmd:
     ld hl, input_buffer
 
-_cmp_loop:
+_cmp_l:
     ld a, (de)
     cp (hl)
     jr nz, _next
@@ -83,7 +83,7 @@ _cmp_loop:
     inc hl
     inc de
     
-    jr _cmp_loop
+    jr _cmp_l
 _next:
     ; Skip the remaining characters of this command
     ld a, (de)
@@ -99,7 +99,7 @@ _next:
     jr _next_cmd
 _unknown:
     ld bc, operand_buffer
-_check_n_loop:
+_cc_l:
     ld a, (hl)
     
     ; check if the character is space
@@ -122,21 +122,21 @@ _check_n_loop:
     ld a, (hl)
     cp 0
     jr z, _handle_var
-    jr _check_n_loop
+    jr _cc_l
 
 _handle_var:
-    PUSH_OPER
+    PUSH_OPERAND
     jp _done
 
 _handle_space:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
     
-    PUSH_OPER
+    PUSH_OPERAND
 
     ld hl, (input_buffer_ptr)
     inc hl
-    jr _cmp_loop
+    jr _cmp_l
 
 _dispatch:
     inc de
@@ -179,14 +179,14 @@ _cmd_mult:
       
     ld a, b
     or c
-    jr z, _mul_done
-_mul_loop:
+    jr z, _m_d
+_m_l:
     add hl, de
     dec bc
     ld a, b
     or c
-    jr nz, _mul_loop
-_mul_done:
+    jr nz, _m_l
+_m_d:
     push hl
     jr _done
 
@@ -194,13 +194,13 @@ _cmd_div:
     pop bc
     pop hl
     ld de, 0
-_div_loop:
+_d_l:
     and a
     sbc hl, bc
-    jr c, _div_done
+    jr c, _d_d
     inc de
-    jr _div_loop
-_div_done:
+    jr _d_l
+_d_d:
     push de
     jr _done
 
@@ -267,10 +267,10 @@ clear_buffer:
     ret z                  
 
     ld hl, input_buffer          
-_loop:
+_l:
     ld (hl), 0             
     inc hl                 
-    djnz _loop        
+    djnz _l        
     
     xor a                   
     ld (input_length), a 
