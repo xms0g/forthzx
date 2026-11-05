@@ -155,7 +155,7 @@ kb_map:
     defb $EF, '0', '9', '8', '7', '6'
     defb $DF, 'P', 'O', 'I', 'U', 'Y'
     defb $BF, KEY_ENTER, 'L', 'K', 'J', 'H'
-    defb $7F, ' ', KEY_SYMBOL, 'M', 'N', 'b'
+    defb $7F, KEY_SPACE, KEY_SYMBOL, 'M', 'N', 'b'
 
 symbol_map:
     defb '1', '!'
