@@ -1,4 +1,4 @@
-BYTE_LENGTH equ 6
+BYTE_LENGTH equ 7
 
 ;-------------------------------------------;
 ; Input:                                    ;
@@ -10,6 +10,15 @@ BYTE_LENGTH equ 6
 
 str_atoi:
     ld de, 0
+    ld c, 0
+
+    ; Check for negative sign
+    ld a, (hl)
+    cp '-'
+    jr nz, _loop
+
+    inc hl
+    ld c, 1  
 
 _loop:
     ld a, (hl)
@@ -47,6 +56,13 @@ _next:
     jr _loop
 
 _done:
+    ld a, c 
+    or a
+    jr z, _positive
+    ; DE = -DE (two's complement)
+    NEGATE16 d,e
+
+_positive:
     ex de, hl
     ret
 
@@ -70,12 +86,7 @@ str_itoa:
     inc de
 
     ; Negate HL (two's complement)
-    xor a
-    sub l
-    ld l, a
-    ld a, 0
-    sbc a, h
-    ld h, a
+    NEGATE16 h,l
 
 _positive:
    ; Process decimal positions

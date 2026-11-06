@@ -30,6 +30,15 @@ PUSH_OPERAND macro
     call str_atoi
     push hl
 endm
+
+NEGATE16 macro regh, regl
+    xor a
+    sub regl
+    ld regl, a
+    ld a, 0
+    sbc a, regh
+    ld regh, a
+endm
     
     jp start
 
@@ -105,6 +114,7 @@ _next:
     jr _next_cmd
 _unknown:
     ld bc, operand_buffer
+    ld hl, input_buffer ; CHECK this
 _cc_l:
     ld a, (hl)
     
@@ -112,6 +122,14 @@ _cc_l:
     cp KEY_SPACE
     jr z, _handle_space
 
+    cp '-'
+    jr nz, _positive
+    ld a, '-'
+    ld (bc), a
+    inc bc
+    inc hl
+    ld a, (hl)
+_positive:
     ; check if the character is a digit
     cp '0' 
     ; if the result is negative, the character is less than '0'
@@ -149,44 +167,44 @@ _dispatch:
     ld a, (de)
 
     cp CMD_PLUS
-    jr z, _cmd_plus 
+    jp z, _cmd_plus 
 
     cp CMD_MINUS
-    jr z, _cmd_minus
+    jp z, _cmd_minus
 
     cp CMD_MULT
-    jr z, _cmd_mult
+    jp z, _cmd_mult
 
     cp CMD_DIV
-    jr z, _cmd_div
+    jp z, _cmd_div
 
     cp CMD_DOT
-    jr z, _cmd_dot
+    jp z, _cmd_dot
 
     cp CMD_DUP
-    jr z, _cmd_dup
+    jp z, _cmd_dup
 
     cp CMD_DROP
-    jr z, _cmd_drop
+    jp z, _cmd_drop
 
     cp CMD_SWAP
-    jr z, _cmd_swap
+    jp z, _cmd_swap
 
     cp CMD_OVER
-    jr z, _cmd_over
+    jp z, _cmd_over
 
     cp CMD_ROT
-    jr z, _cmd_rot
+    jp z, _cmd_rot
 
     cp CMD_EMIT
-    jr z, _cmd_emit
+    jp z, _cmd_emit
 
 _cmd_plus:
     pop bc
     pop hl
     add hl, bc
     push hl
-    jr _done
+    jp _done
 
 _cmd_minus:
     pop bc
@@ -194,7 +212,7 @@ _cmd_minus:
     and a
     sbc hl, bc
     push hl
-    jr _done
+    jp _done
 
 _cmd_mult:
     pop bc
@@ -212,20 +230,63 @@ _m_l:
     jr nz, _m_l
 _m_d:
     push hl
-    jr _done
+    jp _done
 
 _cmd_div:
     pop bc
     pop hl
-    ld de, 0
+    
+    xor a
+    push af
+    ; Check dividend sign
+    bit 7, h
+    jr z, _chk_divisor
+    
+    ; HL = -HL
+    NEGATE16 h,l
+    
+    pop af
+    ld a, 1
+    push af
+ _chk_divisor:   
+    ; check divisor
+    bit 7, b
+    jr z, _divide
+    
+    ; BC = -BC
+    NEGATE16 b,c
+
+    pop af
+    cp 1
+    jr z, _make_positive
+
+    ld a, 1
+    push af
+    jr _divide 
+
+_make_positive:
+    xor a
+    push af
+_divide:
+    ld de, 0 
 _d_l:
-    and a
+    or a
     sbc hl, bc
-    jr c, _d_d
+    jr c, _d_fin
     inc de
     jr _d_l
-_d_d:
+_d_fin:
     push de
+    pop hl
+
+    pop af
+    or a
+    jr z, _d_d
+
+    ; Negate quotient
+    NEGATE16 h,l
+_d_d:
+    push hl
     jr _done
 
 _cmd_dot:
