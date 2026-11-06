@@ -1,19 +1,20 @@
 	org $8000
 
-INPUT_SIZE equ 256
-CMD_PLUS    equ 1
-CMD_MINUS   equ 2
-CMD_MULT    equ 3
-CMD_DIV     equ 4
-CMD_DOT     equ 5
-CMD_2DOT    equ 6
-CMD_DUP     equ 7
-CMD_DROP    equ 8
-CMD_SWAP    equ 9
-CMD_OVER    equ 10
-CMD_ROT     equ 11
-CMD_EMIT    equ 12
-CMD_UNKNOWN equ 13
+INPUT_SIZE      equ 256
+OPR_BUFFER_SIZE equ 7
+CMD_PLUS        equ 1
+CMD_MINUS       equ 2
+CMD_MULT        equ 3
+CMD_DIV         equ 4
+CMD_DOT         equ 5
+CMD_2DOT        equ 6
+CMD_DUP         equ 7
+CMD_DROP        equ 8
+CMD_SWAP        equ 9
+CMD_OVER        equ 10
+CMD_ROT         equ 11
+CMD_EMIT        equ 12
+CMD_UNKNOWN     equ 13
 
 PUT_NULL_TERM macro addr
     xor a
@@ -112,11 +113,11 @@ _cc_l:
     jr z, _handle_space
 
     ; check if the character is a digit
-    cp 48 
+    cp '0' 
     ; if the result is negative, the character is less than '0'
     jp m, _cmd_unknown
     
-    cp 57
+    cp '9'
     ; if the result is positive, the character is greater than '9'
     jp p, _cmd_unknown
     ; save the digit
@@ -379,6 +380,6 @@ input_buffer_ptr:
     defw 0
 
 operand_buffer:
-    defs 4, 0
+    defs OPR_BUFFER_SIZE, 0
 
 end $8000
