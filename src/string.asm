@@ -1,4 +1,4 @@
-BYTE_LENGTH equ 4
+BYTE_LENGTH equ 6
 
 ;-------------------------------------------;
 ; Input:                                    ;
@@ -52,83 +52,95 @@ _done:
 
 ;-------------------------------------------;
 ; Input:                                    ;
-;   l = 8-bit integer to convert to string  ;
+;   hl = 16-bit integer to convert to string;
 ;                                           ;
 ; Output:                                   ;
 ;   hl = address of null-terminated string  ;     
 ;-------------------------------------------;
 str_itoa:
-    ld b, l
-    ld c, 0
-    ld hl, byte_str
+    push ix
+    ld ix, 0
+    ld de, byte_str
 
-    bit 7, b
-    jr z, _hundreds
+    bit 7, h
+    jr z, _positive
 
     ld a, '-'
-    ld (hl), a
-    inc hl
+    ld (de), a
+    inc de
 
+    ; Negate HL (two's complement)
     xor a
-    sub b
-    ld b, a
-_hundreds:
-    ld a, b
-    cp 100
-    jr c, _tens
+    sub l
+    ld l, a
+    ld a, 0
+    sbc a, h
+    ld h, a
 
-    sub 100
-    ld b, a
-    inc c
-    jr _hundreds
+_positive:
+   ; Process decimal positions
+    ld bc, 10000
+    call _digit
 
-_tens:
-    ld a, c
-    or a
-    jr z, _save_tens
+    ld bc, 1000
+    call _digit
 
+    ld bc, 100
+    call _digit
+
+    ld bc, 10
+    call _digit
+
+    ; Units
+    ld a, l
     add a, '0'
-    ld (hl), a
-    inc hl
+    ld (de), a
+    inc de
 
-_save_tens:
-    ld c, 0
-_tens_loop:
-    ld a, b
-    cp 10
-    jr c, _units
+    PUT_NULL_TERM de
 
-    sub 10
-    ld b, a
-    inc c
-    jr _tens_loop
-
-_units:
-    ld a, c
-    or a
-    jr nz, _save_tens_digit
-
-    ; Save units
-    ld a, b
-    add a, '0'
-    ld (hl), a
-    inc hl
-
-    jr _done
-_save_tens_digit:
-    ld a, c
-    add a, '0'
-    ld (hl), a
-    inc hl
-
-    ld a, b
-    add a, '0'
-    ld (hl), a
-    inc hl
-_done:
-    PUT_NULL_TERM hl
     ld hl, byte_str
+    pop ix
     ret
+
+;-------------------------------------------;
+; HL = remaining value                      ; 
+; BC = divisor                              ; 
+; DE = output pointer                       ;
+;-------------------------------------------;
+_digit:
+    ld a, '0'
+
+_loop:
+    or a
+    sbc hl, bc
+    jr c, _digit_done
+
+    inc a
+    jr _loop
+
+_digit_done:
+    add hl, bc
+
+    cp '0'
+    jr nz, _write_digit
+
+    push af
+    ld a, ixh
+    or ixl
+    jr z, _skip_zero
+    pop af
+
+_write_digit:
+    ld (de), a
+    inc de
+
+    ld ix, 1
+    ret
+_skip_zero:
+    pop af
+    ret
+
 
 byte_str:
     defs BYTE_LENGTH, 0
