@@ -2,6 +2,7 @@ KEY_ENTER       equ $0D
 KEY_CAPS_SHIFT  equ $01
 KEY_SYMBOL      equ $02
 KEY_SPACE       equ $20
+KEY_CR          equ $0D
 
 ;-------------------------------------------;
 ; Output:                                   ;

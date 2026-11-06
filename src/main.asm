@@ -8,7 +8,12 @@ CMD_DIV     equ 4
 CMD_DOT     equ 5
 CMD_2DOT    equ 6
 CMD_DUP     equ 7
-CMD_UNKNOWN equ 8
+CMD_DROP    equ 8
+CMD_SWAP    equ 9
+CMD_OVER    equ 10
+CMD_ROT     equ 11
+CMD_EMIT    equ 12
+CMD_UNKNOWN equ 13
 
 PUT_NULL_TERM macro addr
     xor a
@@ -157,6 +162,24 @@ _dispatch:
     cp CMD_DOT
     jr z, _cmd_dot
 
+    cp CMD_DUP
+    jr z, _cmd_dup
+
+    cp CMD_DROP
+    jr z, _cmd_drop
+
+    cp CMD_SWAP
+    jr z, _cmd_swap
+
+    cp CMD_OVER
+    jr z, _cmd_over
+
+    cp CMD_ROT
+    jr z, _cmd_rot
+
+    cp CMD_EMIT
+    jr z, _cmd_emit
+
 _cmd_plus:
     pop bc
     pop hl
@@ -205,7 +228,7 @@ _d_d:
     jr _done
 
 _cmd_dot:
-    ld a, 13
+    ld a, KEY_CR
     call print_char
 
     pop hl
@@ -213,8 +236,60 @@ _cmd_dot:
     call print_str
     jr _done
 
+_cmd_dup:
+    pop bc
+    ld h, b
+    ld l, c
+
+    push bc
+    push hl
+    jr _done
+
+_cmd_drop:
+    pop hl
+    jr _done
+
+_cmd_swap:
+    pop bc
+    pop hl
+
+    push bc
+    push hl
+    jr _done
+
+_cmd_over:
+    pop bc
+    pop hl
+
+    ld d, h
+    ld e, l
+
+    push hl
+    push bc
+    push de
+    jr _done
+
+_cmd_rot:
+    pop bc
+    pop hl
+    pop de
+
+    push hl
+    push bc
+    push de
+    jr _done
+
+_cmd_emit:
+    ld a, KEY_CR
+    call print_char
+
+    pop bc
+    ld a, c
+    call print_char
+    jr _done
+
 _cmd_unknown:
-    ld a, 13
+    ld a, KEY_CR
     call print_char
     ld hl, input_buffer
     call print_str
@@ -222,7 +297,7 @@ _cmd_unknown:
     call print_char
     ld a, '?'
     call print_char
-    ld a, 13
+    ld a, KEY_CR
     call print_char
 _done:    
     call clear_buffer
@@ -283,11 +358,16 @@ cmd_map:
     defb "/", 0, CMD_DIV
     defb ".", 0, CMD_DOT
     defb ":", 0, CMD_2DOT
-    defb "DUP", 0, CMD_DUP, 0
+    defb "DUP", 0, CMD_DUP
+    defb "DROP", 0, CMD_DROP
+    defb "SWAP", 0, CMD_SWAP
+    defb "OVER", 0, CMD_OVER
+    defb "ROT", 0, CMD_ROT
+    defb "EMIT", 0, CMD_EMIT, 0
     defb CMD_UNKNOWN  
 
 shell:
-    defb 13,"FORTH>",0
+    defb KEY_CR,"FORTH>",0
 
 input_length:
     defb 0
