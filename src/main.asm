@@ -46,13 +46,13 @@ _l:
     
     call kb_read
     cp KEY_ENTER
-    jr z, _parse_input
+    jr z, _run_cmd
     
     or a
     call nz, forth_input
     jr _wait_release
 
-_parse_done:
+_run_done:
     ld hl, shell
     call print_str
 
@@ -62,7 +62,7 @@ _wait_release:
 
     jr _l
 
-_parse_input:
+_run_cmd:
     ld a, (input_length)
     ld e, a
     ld d, 0
@@ -301,7 +301,7 @@ _cmd_unknown:
     call print_char
 _done:    
     call clear_buffer
-    jp _parse_done
+    jp _run_done
 
 ;------------------------
 ; a=char                ;
