@@ -213,7 +213,10 @@ _cmd_minus:
     sbc hl, bc
     push hl
     jp _done
-
+; ----------------------;
+; bc=multiplicand       ;
+; de=multiplier         ;
+;-----------------------;
 _cmd_mult:
     pop bc
     pop de
@@ -231,7 +234,10 @@ _m_l:
 _m_d:
     push hl
     jp _done
-
+; ----------------------;
+; bc=divisor            ;
+; hl=dividend           ;
+;-----------------------;
 _cmd_div:
     pop bc
     pop hl
