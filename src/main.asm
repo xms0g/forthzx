@@ -96,8 +96,6 @@ _cmp_l:
 
     or a
     jr z, _dispatch
-    cp ' '
-    jr z, _dispatch
 
     cp '-'
     jr nz, _continue
@@ -177,6 +175,7 @@ _handle_space:
 
     ld hl, (input_buffer_ptr)
     inc hl
+    ld de, cmd_map
     jr _cmp_l
 
 _dispatch:
