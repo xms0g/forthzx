@@ -122,7 +122,7 @@ _next:
     ld a, (de)
     or a
     jr z, _unknown
-    
+
     ld a, (hl)
     cp 0
     jr z, _next_cmd
@@ -428,18 +428,20 @@ forth_input:
     ret
 
 clear_buffer:
-    ld hl, input_length
-    ld b, (hl)
-    
-    ld a, b              
-    or a                    
+    ld bc, input_length
+    ld a, b         
+    or c                    
     ret z                  
 
-    ld hl, input_buffer          
-_l:
-    ld (hl), 0             
-    inc hl                 
-    djnz _l        
+    ld hl, input_buffer
+    ld (hl), 0
+    dec bc
+    ld a, b
+    or c
+    ret z
+               
+    ld de, input_buffer+1
+    ldir     
     
     xor a                   
     ld (input_length), a 
