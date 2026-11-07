@@ -1,9 +1,19 @@
-# forthzx
-A tiny forth interpreter for the ZX Spectrum, written in Z80 assembly.
-You can download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
+# forthZX
+A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. forthZX explores stack-based language interpretation on 8-bit hardware by using the Z80's native hardware stack as the Forth data stack, eliminating the need for a separate software-managed data stack.
 
-<img src="assets/forthzx.gif" alt="image" width="700" height="auto">
+Download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 
+<img src="assets/matrizx.gif" alt="image" width="700" height="auto">
+
+## Architecture
+
+forthZX uses the Z80's native hardware stack (SP) as its Forth data stack, avoiding a separate software-managed data stack.
+
+Stack operations are implemented directly using Z80 instructions such as PUSH and POP.
+
+Since the hardware stack is also used for return addresses, the interpreter carefully manages stack usage. In particular, the parser avoids subroutine calls to prevent return-address operations from interfering with Forth data.
+
+This approach keeps the implementation close to the underlying Z80 architecture while exploring the constraints of implementing a stack-oriented language on 8-bit hardware.
 
 |Command|ZX Spectrum Key|PC Key|
 |-|-|-|
@@ -13,27 +23,14 @@ You can download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 |`/`| SYMBOL_SHIFT + V|CONTROL + V|
 |`.`| SYMBOL_SHIFT + M|CONTROL + M|
 `:`| SYMBOL_SHIFT + Z|CONTROL + Z|
-`DUP`|.|.|
-`DROP`|.|.|
-`SWAP`|.|.|
-`OVER`|.|.|
-`ROT`|.|.|
-`EMIT`|.|.|
+`DUP`|-|-|
+`DROP`|-|-|
+`SWAP`|-|-|
+`OVER`|-|-|
+`ROT`|-|-|
+`EMIT`|-|-|
 
-Press the key (SYMBOL_SHIFT/CONTROL) only once for the special symbols.
-
-## Technical Details
-| Property  | Value |
-|------|-------------|
-|Target|Sinclair ZX Spectrum|
-|Architecture |Zilog Z80|
-|Language |Z80 Assembly|
-|Assembler| Pasmo|
-|Load Address| 0x8000|
-|Screen Resolution| 256×192|
-|Text Resolution |32×24|
-|Video Memory| 0x4000–0x57FF|
-|Attribute Memory| 0x5800–0x5AFF|
+Press SYMBOL SHIFT or CONTROL only once when entering special characters.
 
 ## Building
 ```bash
