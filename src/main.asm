@@ -241,6 +241,10 @@ _m_d:
 _cmd_div:
     pop bc
     pop hl
+
+    ld a, b
+    or c
+    jr z, _zero_division
     
     xor a
     push af
@@ -291,6 +295,11 @@ _d_fin:
 
     ; Negate quotient
     NEGATE16 h,l
+    jr _d_d
+_zero_division:
+    ld hl, zero_division
+    call print_str
+    ld hl, $ffff
 _d_d:
     push hl
     jr _done
@@ -435,7 +444,10 @@ cmd_map:
     defb CMD_UNKNOWN  
 
 shell:
-    defb KEY_CR,"FORTH>",0
+    defb KEY_CR, "FORTH>", 0
+
+zero_division:
+    defb KEY_CR, "infinity", 0
 
 input_length:
     defb 0
