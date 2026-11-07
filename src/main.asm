@@ -82,6 +82,8 @@ _run_cmd:
   
     PUT_NULL_TERM hl
 
+    xor a
+    ld (operand_sign), a
     ; compare input with command map
     ld de, cmd_map
 _next_cmd:
@@ -94,7 +96,16 @@ _cmp_l:
 
     or a
     jr z, _dispatch
+    cp ' '
+    jr z, _dispatch
 
+    cp '-'
+    jr nz, _continue
+
+    ld a, 1
+    ld (operand_sign), a
+
+_continue:
     inc hl
     inc de
     
@@ -111,10 +122,13 @@ _next:
     ld a, (de)
     or a
     jr z, _unknown
-    jr _next_cmd
+    
+    ld a, (hl)
+    cp 0
+    jr z, _next_cmd
+    jr _cmp_l
 _unknown:
     ld bc, operand_buffer
-    ld hl, input_buffer ; CHECK this
 _cc_l:
     ld a, (hl)
     
@@ -122,14 +136,17 @@ _cc_l:
     cp KEY_SPACE
     jr z, _handle_space
 
-    cp '-'
+    ld a, (operand_sign)
+    cp 1
     jr nz, _positive
     ld a, '-'
     ld (bc), a
     inc bc
-    inc hl
-    ld a, (hl)
+    ; zeroed the operand sign
+    xor a
+    ld (operand_sign), a  
 _positive:
+    ld a, (hl)
     ; check if the character is a digit
     cp '0' 
     ; if the result is negative, the character is less than '0'
@@ -460,5 +477,8 @@ input_buffer_ptr:
 
 operand_buffer:
     defs OPR_BUFFER_SIZE, 0
+
+operand_sign:
+    defb 0
 
 end $8000
