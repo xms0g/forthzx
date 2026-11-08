@@ -1,20 +1,23 @@
 	org $8000
 
-INPUT_SIZE      equ 256
-OPR_BUFFER_SIZE equ 7
-CMD_PLUS        equ 1
-CMD_MINUS       equ 2
-CMD_MULT        equ 3
-CMD_DIV         equ 4
-CMD_DOT         equ 5
-CMD_2DOT        equ 6
-CMD_DUP         equ 7
-CMD_DROP        equ 8
-CMD_SWAP        equ 9
-CMD_OVER        equ 10
-CMD_ROT         equ 11
-CMD_EMIT        equ 12
-CMD_UNKNOWN     equ 13
+STACK_TOP           equ $7FE8
+INPUT_SIZE          equ 256
+STACK_DATA_COUNT    equ 128
+OPR_BUFFER_SIZE     equ 7
+CMD_PLUS            equ 1
+CMD_MINUS           equ 2
+CMD_MULT            equ 3
+CMD_DIV             equ 4
+CMD_DOT             equ 5
+CMD_2DOT            equ 6
+CMD_DUP             equ 7
+CMD_DROP            equ 8
+CMD_SWAP            equ 9
+CMD_OVER            equ 10
+CMD_ROT             equ 11
+CMD_EMIT            equ 12
+CMD_SDOT            equ 13
+CMD_UNKNOWN         equ 14
 
 PUT_NULL_TERM macro addr
     xor a
@@ -78,7 +81,9 @@ _wait_release:
     jr _main_loop
 
 _run_cmd:
-    ld de, (input_length)
+    ld a, (input_length)
+    ld e, a
+    ld d, 0
     ld hl, input_buffer
     add hl, de
   
@@ -90,9 +95,7 @@ _run_cmd:
     ld bc, 0
     ; compare input with command map
     ld de, cmd_map
-_next_cmd:
     ld hl, input_buffer
-
 _cmp_loop:
     ld a, (de)
     cp (hl)
@@ -179,13 +182,6 @@ _handle_var:
     
     PUSH_OPERAND
 
-    ld hl, (input_buffer_ptr)
-    ld de, cmd_map
-    ld bc, 0
-    inc hl
-   
-    CHECK_NULL_TERM hl
-    jr nz, _cmp_loop
     jp _done
 
 _dispatch:
@@ -226,6 +222,9 @@ _dispatch:
 
     cp CMD_EMIT
     jp z, _cmd_emit
+
+    cp CMD_SDOT
+    jp z, _cmd_s_dot
 
 _cmd_plus:
     pop bc
@@ -330,7 +329,7 @@ _zero_division:
     ld hl, $ffff
 _d_d:
     push hl
-    jr _done
+    jp _done
 
 _cmd_dot:
     ld a, KEY_CR
@@ -339,7 +338,7 @@ _cmd_dot:
     pop hl
     call str_itoa
     call print_str
-    jr _done
+    jp _done
 
 _cmd_dup:
     pop bc
@@ -348,11 +347,11 @@ _cmd_dup:
 
     push bc
     push hl
-    jr _done
+    jp _done
 
 _cmd_drop:
     pop hl
-    jr _done
+    jp _done
 
 _cmd_swap:
     pop bc
@@ -393,6 +392,66 @@ _cmd_emit:
     call print_char
     jr _done
 
+_cmd_s_dot:
+    ld a, KEY_CR
+    call print_char
+
+    ld de, 0
+    ld bc, stack_data_buffer
+_stack_l:
+    xor a
+    ld hl, STACK_TOP
+    sbc hl, sp
+    jr z, _s_process_done
+    
+    pop hl
+    ; store 16-bit value,first low then hight (little endian)
+    ld a, l
+    ld (bc), a
+    inc bc
+    ld a, h
+    ld (bc), a
+    inc bc
+
+    inc de
+    jr _stack_l
+ _s_process_done:
+    dec bc
+_s_print_l:
+    ; print and push in the reverse order for stack correctness
+    ld a, (bc)
+    ld h, a
+
+    ; clear
+    PUT_NULL_TERM bc
+    dec bc
+    
+    ld a, (bc)
+    ld l, a
+    ; clear 
+    PUT_NULL_TERM bc
+    dec bc
+
+    push hl
+    
+    push bc
+    push de
+    call str_itoa
+    call print_str
+    ld a, ' '
+    call print_char
+
+    pop de
+    pop bc
+
+    dec de
+
+    ld a, e
+    or d
+    jr nz, _s_print_l
+
+    jr _done
+
 _cmd_unknown:
     ld a, KEY_CR
     call print_char
@@ -402,17 +461,36 @@ _cmd_unknown:
     call print_char
     ld a, '?'
     call print_char
-    ld de, (input_length)
+
+    ld a, (input_length)
+    ld e, a
+    ld d, 0
     add hl, de
     ld (input_buffer_ptr), hl
 _done:
-    ld de, cmd_map
-    ld bc, 0
+    ; Find the length of the processed token
+    ; HL = current offset
+    ld hl, (input_buffer_ptr)
+    ld de, input_buffer
+    or a
+    sbc hl, de         
+
+    ld a, (input_length)
+    ld e, a
+    ld d, 0
+    or a
+    ; Compare it with input_length
+    sbc hl, de
+    jr nc, _finish     
+
+    ; More tokens available
     ld hl, (input_buffer_ptr)
     inc hl
+    ld de, cmd_map
+    ld bc, 0
+    jp _cmp_loop
 
-    CHECK_NULL_TERM hl
-    jp nz, _cmp_loop
+_finish:
     call clear_buffer
     jp _run_done
 
@@ -453,23 +531,9 @@ _done:
     ret
 
 clear_buffer:
-    ld bc, input_length
-    ld a, b         
-    or c                    
-    ret z                  
-
-    ld hl, input_buffer
-    ld (hl), 0
-    dec bc
-    ld a, b
-    or c
-    ret z
-               
-    ld de, input_buffer+1
-    ldir     
-    
-    xor a                   
-    ld (input_length), a 
+    xor a
+    ld (input_length), a
+    ld (input_buffer), a 
     ret
 
 cmd_map:
@@ -484,7 +548,8 @@ cmd_map:
     defb "SWAP", 0, CMD_SWAP
     defb "OVER", 0, CMD_OVER
     defb "ROT", 0, CMD_ROT
-    defb "EMIT", 0, CMD_EMIT, 0
+    defb "EMIT", 0, CMD_EMIT
+    defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
 shell:
@@ -498,6 +563,9 @@ input_length:
 
 input_buffer:
     defs INPUT_SIZE, 0
+
+stack_data_buffer:
+    defw STACK_DATA_COUNT, 0
 
 input_buffer_ptr:
     defw 0
