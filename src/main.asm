@@ -126,9 +126,15 @@ _next:
     or a
     jr z, _unknown
 _return_loop:
+    ; if we catch the negative sign, don't move backward
+    ld a, (operand_sign)
+    or a
+    jr nz, _cmp_loop
+
     ld a, b
     or c
     jr z, _cmp_loop
+
     ; move backward the input ptr till bc is zero
     dec hl
     dec bc
@@ -140,8 +146,8 @@ _unknown:
     ld bc, operand_buffer
 
     ld a, (operand_sign)
-    cp 1
-    jr nz, _digit_loop
+    or a
+    jr z, _digit_loop
     ld a, '-'
     ld (bc), a
     inc bc
