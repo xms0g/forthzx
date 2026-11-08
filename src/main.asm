@@ -78,10 +78,7 @@ _wait_release:
     jr _main_loop
 
 _run_cmd:
-    ld a, (input_length)
-    ld e, a
-    ld d, 0
-
+    ld de, (input_length)
     ld hl, input_buffer
     add hl, de
   
@@ -388,8 +385,9 @@ _cmd_unknown:
     call print_char
     ld a, '?'
     call print_char
-    ld a, KEY_CR
-    call print_char
+    ld de, (input_length)
+    add hl, de
+    ld (input_buffer_ptr), hl
 _done:
     ld de, cmd_map
     ld hl, (input_buffer_ptr)
