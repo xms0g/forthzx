@@ -127,23 +127,17 @@ _next:
     jr _cmp_l
 _unknown:
     ld bc, operand_buffer
-_cc_l:
-    ld a, (hl)
-    
-    ; check if the character is space
-    cp KEY_SPACE
-    jr z, _handle_space
 
     ld a, (operand_sign)
     cp 1
-    jr nz, _positive
+    jr nz, _cc_l
     ld a, '-'
     ld (bc), a
     inc bc
     ; zeroed the operand sign
     xor a
     ld (operand_sign), a  
-_positive:
+_cc_l:
     ld a, (hl)
     ; check if the character is a digit
     cp '0' 
@@ -164,21 +158,22 @@ _positive:
     jr _cc_l
 
 _handle_var:
-    PUSH_OPERAND
-    jp _done
-
-_handle_space:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
     
     PUSH_OPERAND
 
     ld hl, (input_buffer_ptr)
-    inc hl
     ld de, cmd_map
-    jr _cmp_l
+    inc hl
+    ld a, (hl)
+    cp 0
+    jr nz, _cmp_l
+    jp _done
 
 _dispatch:
+    ld (input_buffer_ptr), hl
+
     inc de
     ld a, (de)
 
@@ -392,7 +387,13 @@ _cmd_unknown:
     call print_char
     ld a, KEY_CR
     call print_char
-_done:    
+_done:
+    ld de, cmd_map
+    ld hl, (input_buffer_ptr)
+    inc hl
+    ld a, (hl)
+    cp 0
+    jp nz, _cmp_l
     call clear_buffer
     jp _run_done
 
@@ -414,8 +415,14 @@ forth_input:
     add hl, de
 
     ; Store character
+    ld a, b
+    cp KEY_SPACE
+    jr z, _replace
     ld (hl), b
-
+    jr _done
+_replace:
+    ld (hl), 0
+_done:
     ; Increment input length
     ld a, (input_length)
     inc a
