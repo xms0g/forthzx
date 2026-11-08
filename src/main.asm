@@ -86,6 +86,8 @@ _run_cmd:
 
     xor a
     ld (operand_sign), a
+    ; passed chars count
+    ld bc, 0
     ; compare input with command map
     ld de, cmd_map
 _next_cmd:
@@ -108,6 +110,7 @@ _cmp_loop:
 _continue:
     inc hl
     inc de
+    inc bc
     
     jr _cmp_loop
 _next:
@@ -122,9 +125,16 @@ _next:
     ld a, (de)
     or a
     jr z, _unknown
-
-    CHECK_NULL_TERM hl
-    jr z, _next_cmd
+_return_loop:
+    ld a, b
+    or c
+    jr z, _cmp_loop
+    ; move backward the input ptr till bc is zero
+    dec hl
+    dec bc
+    ld a, b
+    or c
+    jr nz, _return_loop
     jr _cmp_loop
 _unknown:
     ld bc, operand_buffer
@@ -165,6 +175,7 @@ _handle_var:
 
     ld hl, (input_buffer_ptr)
     ld de, cmd_map
+    ld bc, 0
     inc hl
    
     CHECK_NULL_TERM hl
@@ -390,6 +401,7 @@ _cmd_unknown:
     ld (input_buffer_ptr), hl
 _done:
     ld de, cmd_map
+    ld bc, 0
     ld hl, (input_buffer_ptr)
     inc hl
 
