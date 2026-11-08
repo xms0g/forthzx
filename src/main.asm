@@ -10,14 +10,20 @@ CMD_MULT            equ 3
 CMD_DIV             equ 4
 CMD_DOT             equ 5
 CMD_2DOT            equ 6
-CMD_DUP             equ 7
-CMD_DROP            equ 8
-CMD_SWAP            equ 9
-CMD_OVER            equ 10
-CMD_ROT             equ 11
-CMD_EMIT            equ 12
-CMD_SDOT            equ 13
-CMD_UNKNOWN         equ 14
+CMD_EQUAL           equ 7
+CMD_GREATER_THEN    equ 8
+CMD_LESS_THEN       equ 9
+CMD_DUP             equ 10
+CMD_DROP            equ 11
+CMD_SWAP            equ 12
+CMD_OVER            equ 13
+CMD_ROT             equ 14
+CMD_EMIT            equ 15
+CMD_AND             equ 16
+CMD_OR              equ 17
+CMD_INVERT          equ 18
+CMD_SDOT            equ 19
+CMD_UNKNOWN         equ 20
 
 PUT_NULL_TERM macro addr
     xor a
@@ -205,6 +211,15 @@ _dispatch:
     cp CMD_DOT
     jp z, _cmd_dot
 
+    cp CMD_EQUAL
+    jp z, _cmd_equal
+
+    cp CMD_GREATER_THEN
+    jp z, _cmd_greater_then
+
+    cp CMD_LESS_THEN
+    jp z, _cmd_less_then
+
     cp CMD_DUP
     jp z, _cmd_dup
 
@@ -222,6 +237,15 @@ _dispatch:
 
     cp CMD_EMIT
     jp z, _cmd_emit
+
+    cp CMD_AND
+    jp z, _cmd_and
+
+    cp CMD_OR
+    jp z, _cmd_or
+
+    cp CMD_INVERT
+    jp z, _cmd_invert
 
     cp CMD_SDOT
     jp z, _cmd_s_dot
@@ -340,6 +364,53 @@ _cmd_dot:
     call print_str
     jp _done
 
+_cmd_equal:
+    pop de
+    pop hl
+    or a
+    sbc hl, de
+    jr nz, _ne
+    ld hl, $ffff
+    push hl
+    jp _done
+_ne:
+    ld hl, 0
+    push hl
+    jp _done
+
+_cmd_greater_then:
+    pop de
+    pop hl
+    or a
+    sbc hl, de
+    jr nz, _nz
+    jr _gt_fin  
+_nz:
+    jr nc, _nc
+    jr _gt_fin
+_nc:
+    ld hl, $ffff
+    push hl
+    jp _done
+_gt_fin:
+    ld hl, 0
+    push hl
+    jp _done
+
+_cmd_less_then:
+    pop de
+    pop hl
+    or a
+    sbc hl, de
+    jr c, _lt
+    ld hl, 0
+    push hl
+    jp _done
+_lt:
+    ld hl, $ffff
+    push hl
+    jp _done
+
 _cmd_dup:
     pop bc
     ld h, b
@@ -359,7 +430,7 @@ _cmd_swap:
 
     push bc
     push hl
-    jr _done
+    jp _done
 
 _cmd_over:
     pop bc
@@ -371,7 +442,7 @@ _cmd_over:
     push hl
     push bc
     push de
-    jr _done
+    jp _done
 
 _cmd_rot:
     pop bc
@@ -381,7 +452,7 @@ _cmd_rot:
     push hl
     push bc
     push de
-    jr _done
+    jp _done
 
 _cmd_emit:
     ld a, KEY_CR
@@ -390,6 +461,47 @@ _cmd_emit:
     pop bc
     ld a, c
     call print_char
+    jr _done
+
+_cmd_and:
+    pop de
+    pop hl
+    ld a, d
+    and h
+    ld h, a
+
+    ld a, e
+    and l
+    ld l, a
+
+    push hl
+    jr _done
+
+_cmd_or:
+    pop de
+    pop hl
+    ld a, d
+    or h
+    ld h, a
+
+    ld a, e
+    or l
+    ld l, a
+    
+    push hl
+    jr _done
+
+_cmd_invert:
+    pop hl
+    ld a, h
+    cpl
+    ld h, a
+
+    ld a, l
+    cpl
+    ld l, a
+
+    push hl
     jr _done
 
 _cmd_s_dot:
@@ -543,12 +655,18 @@ cmd_map:
     defb "/", 0, CMD_DIV
     defb ".", 0, CMD_DOT
     defb ":", 0, CMD_2DOT
+    defb "=", 0, CMD_EQUAL
+    defb ">", 0, CMD_GREATER_THEN
+    defb "<", 0, CMD_LESS_THEN
     defb "DUP", 0, CMD_DUP
     defb "DROP", 0, CMD_DROP
     defb "SWAP", 0, CMD_SWAP
     defb "OVER", 0, CMD_OVER
     defb "ROT", 0, CMD_ROT
     defb "EMIT", 0, CMD_EMIT
+    defb "AND", 0, CMD_AND
+    defb "OR", 0, CMD_OR
+    defb "INVERT", 0, CMD_INVERT
     defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
