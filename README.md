@@ -5,7 +5,7 @@ forthZX explores stack-based language interpretation on 8-bit hardware by using 
 
 Download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 
-<img src="assets/matrizx.gif" alt="image" width="700" height="auto">
+<img src="assets/forthzx.gif" alt="image" width="700" height="auto">
 
 ## Architecture
 
