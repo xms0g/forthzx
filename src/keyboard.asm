@@ -179,4 +179,6 @@ symbol_map:
     defb 'O', ';'
     defb 'L', '='
     defb 'C', '?'
+    defb 'R', '<'
+    defb 'T', '>'
     defb 0
