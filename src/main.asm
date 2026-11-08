@@ -21,6 +21,11 @@ PUT_NULL_TERM macro addr
     ld (addr), a
 endm
 
+CHECK_NULL_TERM macro addr
+    ld a, (addr)
+    or a
+endm
+
 PUSH_OPERAND macro
     PUT_NULL_TERM bc
 
@@ -121,8 +126,7 @@ _next:
     or a
     jr z, _unknown
 
-    ld a, (hl)
-    cp 0
+    CHECK_NULL_TERM hl
     jr z, _next_cmd
     jr _cmp_l
 _unknown:
@@ -152,8 +156,7 @@ _cc_l:
     inc bc
     inc hl
     ; if it's null terminator, push it
-    ld a, (hl)
-    cp 0
+    CHECK_NULL_TERM hl
     jr z, _handle_var
     jr _cc_l
 
@@ -166,8 +169,8 @@ _handle_var:
     ld hl, (input_buffer_ptr)
     ld de, cmd_map
     inc hl
-    ld a, (hl)
-    cp 0
+   
+    CHECK_NULL_TERM hl
     jr nz, _cmp_l
     jp _done
 
@@ -391,8 +394,8 @@ _done:
     ld de, cmd_map
     ld hl, (input_buffer_ptr)
     inc hl
-    ld a, (hl)
-    cp 0
+
+    CHECK_NULL_TERM hl
     jp nz, _cmp_l
     call clear_buffer
     jp _run_done
