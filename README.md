@@ -1,5 +1,7 @@
 # forthZX
-A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. forthZX explores stack-based language interpretation on 8-bit hardware by using the Z80's native hardware stack as the Forth data stack, eliminating the need for a separate software-managed data stack.
+A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. 
+
+forthZX explores stack-based language interpretation on 8-bit hardware by using the Z80's native hardware stack as the Forth data stack, eliminating the need for a separate software-managed data stack.
 
 Download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 
@@ -22,13 +24,20 @@ This approach keeps the implementation close to the underlying Z80 architecture 
 |`*` |SYMBOL_SHIFT + B|CONTROL + B|
 |`/`| SYMBOL_SHIFT + V|CONTROL + V|
 |`.`| SYMBOL_SHIFT + M|CONTROL + M|
-`:`| SYMBOL_SHIFT + Z|CONTROL + Z|
-`DUP`|-|-|
-`DROP`|-|-|
-`SWAP`|-|-|
-`OVER`|-|-|
-`ROT`|-|-|
-`EMIT`|-|-|
+|`:`| SYMBOL_SHIFT + Z|CONTROL + Z|
+|`=`| SYMBOL_SHIFT + L|CONTROL + L|
+|`>`| SYMBOL_SHIFT + T|CONTROL + T|
+|`<`| SYMBOL_SHIFT + R|CONTROL + R|
+|`DUP`|-|-|
+|`DROP`|-|-|
+|`SWAP`|-|-|
+|`OVER`|-|-|
+|`ROT`|-|-|
+|`EMIT`|-|-|
+|`AND`|-|-|
+|`OR`|-|-|
+|`INVERT`|-|-|
+|`.S`|-|-|
 
 Press SYMBOL SHIFT or CONTROL only once when entering special characters.
 
