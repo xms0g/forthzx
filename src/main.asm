@@ -54,10 +54,10 @@ endm
 start:
     ld hl, shell
     call print_str
-_l:
+_main_loop:
     call kb_poll
     or a
-    jr z, _l
+    jr z, _main_loop
     
     call kb_read
     cp KEY_ENTER
@@ -75,7 +75,7 @@ _wait_release:
     call kb_poll
     jr nz, _wait_release
 
-    jr _l
+    jr _main_loop
 
 _run_cmd:
     ld a, (input_length)
@@ -94,7 +94,7 @@ _run_cmd:
 _next_cmd:
     ld hl, input_buffer
 
-_cmp_l:
+_cmp_loop:
     ld a, (de)
     cp (hl)
     jr nz, _next
@@ -112,7 +112,7 @@ _continue:
     inc hl
     inc de
     
-    jr _cmp_l
+    jr _cmp_loop
 _next:
     ; Skip the remaining characters of this command
     ld a, (de)
@@ -128,20 +128,20 @@ _next:
 
     CHECK_NULL_TERM hl
     jr z, _next_cmd
-    jr _cmp_l
+    jr _cmp_loop
 _unknown:
     ld bc, operand_buffer
 
     ld a, (operand_sign)
     cp 1
-    jr nz, _cc_l
+    jr nz, _digit_loop
     ld a, '-'
     ld (bc), a
     inc bc
     ; zeroed the operand sign
     xor a
     ld (operand_sign), a  
-_cc_l:
+_digit_loop:
     ld a, (hl)
     ; check if the character is a digit
     cp '0' 
@@ -158,7 +158,7 @@ _cc_l:
     ; if it's null terminator, push it
     CHECK_NULL_TERM hl
     jr z, _handle_var
-    jr _cc_l
+    jr _digit_loop
 
 _handle_var:
     ; save the buffer ptr
@@ -171,7 +171,7 @@ _handle_var:
     inc hl
    
     CHECK_NULL_TERM hl
-    jr nz, _cmp_l
+    jr nz, _cmp_loop
     jp _done
 
 _dispatch:
@@ -396,7 +396,7 @@ _done:
     inc hl
 
     CHECK_NULL_TERM hl
-    jp nz, _cmp_l
+    jp nz, _cmp_loop
     call clear_buffer
     jp _run_done
 
