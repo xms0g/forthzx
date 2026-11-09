@@ -9,7 +9,7 @@ CMD_MINUS           equ 2
 CMD_MULT            equ 3
 CMD_DIV             equ 4
 CMD_DOT             equ 5
-CMD_2DOT            equ 6
+CMD_COLON            equ 6
 CMD_EQUAL           equ 7
 CMD_GREATER_THEN    equ 8
 CMD_LESS_THEN       equ 9
@@ -654,7 +654,7 @@ cmd_map:
     defb "*", 0, CMD_MULT
     defb "/", 0, CMD_DIV
     defb ".", 0, CMD_DOT
-    defb ":", 0, CMD_2DOT
+    defb ":", 0, CMD_COLON
     defb "=", 0, CMD_EQUAL
     defb ">", 0, CMD_GREATER_THEN
     defb "<", 0, CMD_LESS_THEN
