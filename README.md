@@ -1,22 +1,18 @@
 # forthZX
-A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. 
-
-forthZX explores stack-based language interpretation on 8-bit hardware by using the Z80's native hardware stack as the Forth data stack, eliminating the need for a separate software-managed data stack.
+A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. The project explores implementing a stack-based programming language on an 8-bit system by leveraging the Z80's native hardware capabilities.
 
 Download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 
 <img src="assets/forthzx.gif" alt="image" width="700" height="auto">
 
 ## Architecture
+forthZX uses the Z80's native hardware stack (SP) as its Forth data stack, eliminating the need for a separate software-managed stack.
 
-forthZX uses the Z80's native hardware stack (SP) as its Forth data stack, avoiding a separate software-managed data stack.
-
-Stack operations are implemented directly using Z80 instructions such as PUSH and POP.
+Stack operations are performed directly using Z80 instructions such as PUSH and POP.
 
 Since the hardware stack is also used for return addresses, the interpreter carefully manages stack usage. In particular, the parser avoids subroutine calls to prevent return-address operations from interfering with Forth data.
 
-This approach keeps the implementation close to the underlying Z80 architecture while exploring the constraints of implementing a stack-oriented language on 8-bit hardware.
-
+## Commands
 |Command|ZX Spectrum Key|PC Key|
 |-|-|-|
 |`+`|SYMBOL_SHIFT + K|CONTROL + K|
