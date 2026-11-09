@@ -249,14 +249,22 @@ _dispatch:
 
     cp CMD_SDOT
     jp z, _cmd_s_dot
-
+;---------------;
+; plus          ;
+;   bc=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_plus:
     pop bc
     pop hl
     add hl, bc
     push hl
     jp _done
-
+;---------------;
+; minus         ;
+;   bc=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_minus:
     pop bc
     pop hl
@@ -265,8 +273,9 @@ _cmd_minus:
     push hl
     jp _done
 ; ----------------------;
-; bc=multiplicand       ;
-; de=multiplier         ;
+; mult                  ;
+;   bc=multiplicand     ;
+;   de=multiplier       ;
 ;-----------------------;
 _cmd_mult:
     pop bc
@@ -286,8 +295,9 @@ _m_d:
     push hl
     jp _done
 ; ----------------------;
-; bc=divisor            ;
-; hl=dividend           ;
+; div                   ;
+;   bc=divisor          ;
+;   hl=dividend         ;
 ;-----------------------;
 _cmd_div:
     pop bc
@@ -354,7 +364,10 @@ _zero_division:
 _d_d:
     push hl
     jp _done
-
+;---------------;
+; dot           ;
+;   hl=var      ;
+;---------------;
 _cmd_dot:
     ld a, KEY_CR
     call print_char
@@ -364,6 +377,11 @@ _cmd_dot:
     call print_str
     jp _done
 
+;---------------;
+; equal         ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_equal:
     pop de
     pop hl
@@ -378,6 +396,11 @@ _ne:
     push hl
     jp _done
 
+;---------------;
+; gt            ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_greater_then:
     pop de
     pop hl
@@ -397,6 +420,11 @@ _gt_fin:
     push hl
     jp _done
 
+;---------------;
+; lt            ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_less_then:
     pop de
     pop hl
@@ -410,7 +438,10 @@ _lt:
     ld hl, $ffff
     push hl
     jp _done
-
+;---------------;
+; dup           ;
+;   bc=var      ;
+;---------------;
 _cmd_dup:
     pop bc
     ld h, b
@@ -419,11 +450,19 @@ _cmd_dup:
     push bc
     push hl
     jp _done
-
+;---------------;
+; drop          ;
+;   hl=var      ;
+;---------------;
 _cmd_drop:
     pop hl
     jp _done
 
+;---------------;
+; swap          ;
+;   bc=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_swap:
     pop bc
     pop hl
@@ -432,6 +471,11 @@ _cmd_swap:
     push hl
     jp _done
 
+;---------------;
+; over          ;
+;   bc=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_over:
     pop bc
     pop hl
@@ -444,6 +488,12 @@ _cmd_over:
     push de
     jp _done
 
+;---------------;
+; rot           ;
+;   bc=var1     ;
+;   hl=var2     ;
+;   de=var3     ;
+;---------------;
 _cmd_rot:
     pop bc
     pop hl
@@ -454,6 +504,10 @@ _cmd_rot:
     push de
     jp _done
 
+;---------------;
+; emit          ;
+;   bc=var      ;
+;---------------;
 _cmd_emit:
     ld a, KEY_CR
     call print_char
@@ -461,8 +515,13 @@ _cmd_emit:
     pop bc
     ld a, c
     call print_char
-    jr _done
+    jp _done
 
+;---------------;
+; and           ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_and:
     pop de
     pop hl
@@ -475,8 +534,13 @@ _cmd_and:
     ld l, a
 
     push hl
-    jr _done
+    jp _done
 
+;---------------;
+; or            ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
 _cmd_or:
     pop de
     pop hl
@@ -489,8 +553,12 @@ _cmd_or:
     ld l, a
     
     push hl
-    jr _done
+    jp _done
 
+;---------------;
+; invert        ;
+;   hl=var      ;
+;---------------;
 _cmd_invert:
     pop hl
     ld a, h
@@ -502,8 +570,12 @@ _cmd_invert:
     ld l, a
 
     push hl
-    jr _done
+    jp _done
 
+;---------------;
+; .S            ;
+;   hl=var      ;
+;---------------;
 _cmd_s_dot:
     ld a, KEY_CR
     call print_char
@@ -562,8 +634,11 @@ _s_print_l:
     or d
     jr nz, _s_print_l
 
-    jr _done
+    jp _done
 
+;---------------;
+; unknown       ;
+;---------------;
 _cmd_unknown:
     ld a, KEY_CR
     call print_char
@@ -606,9 +681,9 @@ _finish:
     call clear_buffer
     jp _run_done
 
-;------------------------
+;-----------------------;
 ; a=char                ;
-;------------------------
+;-----------------------;
 forth_input:
     ld b, a
 
@@ -692,6 +767,12 @@ operand_buffer:
     defs OPR_BUFFER_SIZE, 0
 
 operand_sign:
+    defb 0
+
+vd_length:
+    defb 0
+
+var_dict:
     defb 0
 
 end $8000
