@@ -9,7 +9,7 @@ CMD_MINUS           equ 2
 CMD_MULT            equ 3
 CMD_DIV             equ 4
 CMD_DOT             equ 5
-CMD_COLON            equ 6
+CMD_COLON           equ 6
 CMD_EQUAL           equ 7
 CMD_GREATER_THEN    equ 8
 CMD_LESS_THEN       equ 9
@@ -73,7 +73,7 @@ _main_loop:
     jr z, _run_cmd
     
     or a
-    call nz, forth_input
+    call nz, save_input
     jr _wait_release
 
 _run_done:
@@ -684,7 +684,7 @@ _finish:
 ;-----------------------;
 ; a=char                ;
 ;-----------------------;
-forth_input:
+save_input:
     ld b, a
 
     ; Check input_buffer capacity
