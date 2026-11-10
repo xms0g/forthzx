@@ -18,12 +18,15 @@ Since the hardware stack is also used for return addresses, the interpreter care
 |`+`|SYMBOL_SHIFT + K|CONTROL + K|
 |`-` |SYMBOL_SHIFT + J|CONTROL + J|
 |`*` |SYMBOL_SHIFT + B|CONTROL + B|
-|`/`| SYMBOL_SHIFT + V|CONTROL + V|
-|`.`| SYMBOL_SHIFT + M|CONTROL + M|
-|`:`| SYMBOL_SHIFT + Z|CONTROL + Z|
-|`=`| SYMBOL_SHIFT + L|CONTROL + L|
-|`>`| SYMBOL_SHIFT + T|CONTROL + T|
-|`<`| SYMBOL_SHIFT + R|CONTROL + R|
+|`/`|SYMBOL_SHIFT + V|CONTROL + V|
+|`.`|SYMBOL_SHIFT + M|CONTROL + M|
+|`:`|SYMBOL_SHIFT + Z|CONTROL + Z|
+|`=`|SYMBOL_SHIFT + L|CONTROL + L|
+|`>`|SYMBOL_SHIFT + T|CONTROL + T|
+|`!`|SYMBOL_SHIFT + 1|CONTROL + 1|
+|`@`|SYMBOL_SHIFT + 2|CONTROL + 2|
+|`?`|SYMBOL_SHIFT + C|CONTROL + C|
+|`+!`|-|-|
 |`DUP`|-|-|
 |`DROP`|-|-|
 |`SWAP`|-|-|
@@ -33,6 +36,7 @@ Since the hardware stack is also used for return addresses, the interpreter care
 |`AND`|-|-|
 |`OR`|-|-|
 |`INVERT`|-|-|
+|`VARIABLE`|-|-|
 |`.S`|-|-|
 
 Press SYMBOL SHIFT or CONTROL only once when entering special characters.
