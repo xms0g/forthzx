@@ -179,10 +179,10 @@ _digit_loop:
     inc hl
     ; if it's null terminator, push it
     CHECK_NULL_TERM hl
-    jr z, _handle_var
+    jr z, _push_digit
     jr _digit_loop
 
-_handle_var:
+_push_digit:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
     
