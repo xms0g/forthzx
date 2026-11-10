@@ -11,18 +11,21 @@ CMD_COLON           equ 6
 CMD_EQUAL           equ 7
 CMD_GREATER_THEN    equ 8
 CMD_LESS_THEN       equ 9
-CMD_DUP             equ 10
-CMD_DROP            equ 11
-CMD_SWAP            equ 12
-CMD_OVER            equ 13
-CMD_ROT             equ 14
-CMD_EMIT            equ 15
-CMD_AND             equ 16
-CMD_OR              equ 17
-CMD_INVERT          equ 18
-CMD_VAR             equ 19
-CMD_SDOT            equ 20
-CMD_UNKNOWN         equ 21
+CMD_STORE_VAL       equ 10
+CMD_GET_VAL         equ 11
+CMD_SHOW_VAL        equ 12
+CMD_DUP             equ 13
+CMD_DROP            equ 14
+CMD_SWAP            equ 15
+CMD_OVER            equ 16
+CMD_ROT             equ 17
+CMD_EMIT            equ 18
+CMD_AND             equ 19
+CMD_OR              equ 20
+CMD_INVERT          equ 21
+CMD_VAR             equ 22
+CMD_SDOT            equ 23
+CMD_UNKNOWN         equ 24
 
 PUT_NULL_TERM macro addr
     xor a
@@ -222,6 +225,9 @@ _s_var_name:
     jp z, _cmd_unknown
     jr _var_loop
 _var_found:
+    ; save the buffer ptr
+    ld (input_buffer_ptr), hl
+    
     inc bc
     ; bc now points addr
     ld a, (bc)
@@ -229,7 +235,9 @@ _var_found:
     inc bc
     ld a, (bc)
     ld h, a
+
     push hl
+    
     jp _done
 
 _dispatch:
@@ -261,6 +269,15 @@ _dispatch:
 
     cp CMD_LESS_THEN
     jp z, _cmd_less_then
+
+    cp CMD_STORE_VAL
+    jp z, _cmd_store_val
+
+    cp CMD_GET_VAL
+    jp z, _cmd_get_val
+
+    cp CMD_SHOW_VAL
+    jp z, _cmd_show_val
 
     cp CMD_DUP
     jp z, _cmd_dup
@@ -483,6 +500,89 @@ _lt:
     ld hl, $ffff
     push hl
     jp _done
+
+;---------------;
+; !             ;
+;   hl=addr     ;
+;   bc=val      ;
+;---------------;
+_cmd_store_val:
+    pop hl
+    pop bc
+_csv_l:
+    ld a, (hl)
+    inc hl
+    cp 0
+    jr nz, _csv_l
+    ; Skip the addr
+    inc hl
+    inc hl
+    inc hl
+
+    ld a, c
+    ld (hl), a
+    inc hl
+    ld a, b
+    ld (hl), a
+    
+    jp _done
+
+;---------------;
+; @             ;
+;   hl=addr     ;
+;---------------;
+_cmd_get_val:
+    pop hl
+_cgv_l:
+    ld a, (hl)
+    inc hl
+    cp 0
+    jr nz, _cgv_l
+
+    inc hl
+    inc hl
+    inc hl
+
+    ld a, (hl)
+    ld c, a
+    inc hl
+    ld a, (hl)
+    ld b, a
+
+    push bc
+
+    jp _done
+
+;---------------;
+; ?             ;
+;   bc=addr     ;
+;---------------;
+_cmd_show_val:
+    ld a, KEY_CR
+    call print_char
+
+    pop bc
+_cshv_l:
+    ld a, (bc)
+    inc bc
+    cp 0
+    jr nz, _cshv_l
+
+    inc bc
+    inc bc
+    inc bc
+
+    ld a, (bc)
+    ld l, a
+    inc bc
+    ld a, (bc)
+    ld h, a
+
+    call str_itoa
+    call print_str
+
+    jp _done
+
 ;---------------;
 ; dup           ;
 ;   bc=var      ;
@@ -835,6 +935,9 @@ cmd_map:
     defb "=", 0, CMD_EQUAL
     defb ">", 0, CMD_GREATER_THEN
     defb "<", 0, CMD_LESS_THEN
+    defb "!", 0, CMD_STORE_VAL
+    defb "@", 0, CMD_GET_VAL
+    defb "?", 0, CMD_SHOW_VAL
     defb "DUP", 0, CMD_DUP
     defb "DROP", 0, CMD_DROP
     defb "SWAP", 0, CMD_SWAP
