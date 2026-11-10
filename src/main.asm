@@ -600,6 +600,9 @@ _stack_l:
     inc de
     jr _stack_l
  _s_process_done:
+    ld a, e
+    cp 0
+    jr z, _done
     dec bc
 _s_print_l:
     ; print and push in the reverse order for stack correctness
