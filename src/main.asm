@@ -1,5 +1,3 @@
-	org $8000
-
 STACK_TOP           equ $7FE8
 INPUT_SIZE          equ 256
 STACK_DATA_COUNT    equ 128
@@ -22,8 +20,9 @@ CMD_EMIT            equ 15
 CMD_AND             equ 16
 CMD_OR              equ 17
 CMD_INVERT          equ 18
-CMD_SDOT            equ 19
-CMD_UNKNOWN         equ 20
+CMD_VAR             equ 19
+CMD_SDOT            equ 20
+CMD_UNKNOWN         equ 21
 
 PUT_NULL_TERM macro addr
     xor a
@@ -53,7 +52,8 @@ NEGATE16 macro regh, regl
     sbc a, regh
     ld regh, a
 endm
-    
+
+    org $8000
     jp start
 
     include "video.asm"
@@ -63,6 +63,7 @@ endm
 start:
     ld hl, shell
     call print_str
+
 _main_loop:
     call kb_poll
     or a
@@ -108,7 +109,7 @@ _cmp_loop:
     jr nz, _next
 
     or a
-    jr z, _dispatch
+    jp z, _dispatch
 
     cp '-'
     jr nz, _continue
@@ -168,11 +169,11 @@ _digit_loop:
     ; check if the character is a digit
     cp '0' 
     ; if the result is negative, the character is less than '0'
-    jp m, _cmd_unknown
+    jp m, _check_var
     
     cp '9'
     ; if the result is positive, the character is greater than '9'
-    jp p, _cmd_unknown
+    jp p, _check_var
     ; save the digit
     ld (bc), a
     inc bc
@@ -188,6 +189,47 @@ _push_digit:
     
     PUSH_OPERAND
 
+    jp _done
+
+_check_var:
+    ld bc, var_dict
+_var_loop:
+    ld a, (bc)
+    cp (hl)
+    jr nz, _s_var_name
+
+    or a
+    jr z, _var_found
+
+    inc hl
+    inc bc
+    jr _var_loop
+_s_var_name:
+    ; Skip the entry name
+    ld a, (bc)
+    inc bc
+    or a
+    jr nz, _s_var_name
+
+    ; Skip the entry addr
+    inc bc
+    inc bc
+    ; Skip the entry value
+    inc bc
+    inc bc
+    ld a, (bc)
+    cp 0
+    jp z, _cmd_unknown
+    jr _var_loop
+_var_found:
+    inc bc
+    ; bc now points addr
+    ld a, (bc)
+    ld l, a
+    inc bc
+    ld a, (bc)
+    ld h, a
+    push hl
     jp _done
 
 _dispatch:
@@ -246,6 +288,9 @@ _dispatch:
 
     cp CMD_INVERT
     jp z, _cmd_invert
+
+    cp CMD_VAR
+    jp z, _cmd_var
 
     cp CMD_SDOT
     jp z, _cmd_s_dot
@@ -573,6 +618,60 @@ _cmd_invert:
     jp _done
 
 ;---------------;
+; variable      ;
+;---------------;
+_cmd_var:
+    ld hl, var_dict
+    ld de, (vd_offset)
+   
+    ; next cell 
+    add hl, de
+
+    ld a, h
+    ld b, a
+    ld a, l
+    ld c, a
+    ; bc now points current offset of var_dict
+    ld (curr_vd_addr), bc
+    ld hl, (input_buffer_ptr)
+    inc hl
+    ld de, 0
+    ; Now hl points the variable name
+_v_loop:
+    ld a, (hl)
+    ld (bc), a
+    
+    inc hl
+    inc bc
+    inc de
+    
+    ld a, (hl)
+    cp 0
+    jr nz, _v_loop
+
+    PUT_NULL_TERM bc
+    inc bc
+    ; store the current dict address 
+    ld hl, (curr_vd_addr)
+    ld a, l
+    ld (bc), a
+    ld a, h
+    inc bc
+    ld (bc), a
+  
+    inc de
+    inc de
+    inc de
+    inc de
+    inc de
+    
+    ld hl, (vd_offset)
+    add hl, de
+    ld (vd_offset), hl
+    
+    jp _finish
+
+;---------------;
 ; .S            ;
 ;   hl=var      ;
 ;---------------;
@@ -745,6 +844,7 @@ cmd_map:
     defb "AND", 0, CMD_AND
     defb "OR", 0, CMD_OR
     defb "INVERT", 0, CMD_INVERT
+    defb "VARIABLE", 0, CMD_VAR
     defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
@@ -772,8 +872,11 @@ operand_buffer:
 operand_sign:
     defb 0
 
-vd_length:
-    defb 0
+vd_offset:
+    defw 0
+
+curr_vd_addr:
+    defw 0
 
 var_dict:
     defb 0
