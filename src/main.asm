@@ -8,25 +8,26 @@ CMD_MULT            equ 3
 CMD_DIV             equ 4
 CMD_DOT             equ 5
 CMD_COLON           equ 6
-CMD_EQUAL           equ 7
+CMD_EQ              equ 7
 CMD_GREATER_THEN    equ 8
 CMD_LESS_THEN       equ 9
-CMD_STORE_VAL       equ 10
-CMD_GET_VAL         equ 11
-CMD_SHOW_VAL        equ 12
-CMD_ADD_VAL         equ 13
-CMD_DUP             equ 14
-CMD_DROP            equ 15
-CMD_SWAP            equ 16
-CMD_OVER            equ 17
-CMD_ROT             equ 18
-CMD_EMIT            equ 19
-CMD_AND             equ 20
-CMD_OR              equ 21
-CMD_INVERT          equ 22
-CMD_VAR             equ 23
-CMD_SDOT            equ 24
-CMD_UNKNOWN         equ 25
+CMD_NOT_EQ          equ 10
+CMD_STORE_VAL       equ 11
+CMD_GET_VAL         equ 12
+CMD_SHOW_VAL        equ 13
+CMD_ADD_VAL         equ 14
+CMD_DUP             equ 15
+CMD_DROP            equ 16
+CMD_SWAP            equ 17
+CMD_OVER            equ 18
+CMD_ROT             equ 19
+CMD_EMIT            equ 21
+CMD_AND             equ 22
+CMD_OR              equ 23
+CMD_INVERT          equ 24
+CMD_VAR             equ 25
+CMD_SDOT            equ 26
+CMD_UNKNOWN         equ 27
 
 PUT_NULL_TERM macro addr
     xor a
@@ -276,7 +277,7 @@ _dispatch:
     cp CMD_DOT
     jp z, _cmd_dot
 
-    cp CMD_EQUAL
+    cp CMD_EQ
     jp z, _cmd_equal
 
     cp CMD_GREATER_THEN
@@ -284,6 +285,9 @@ _dispatch:
 
     cp CMD_LESS_THEN
     jp z, _cmd_less_then
+
+    cp CMD_NOT_EQ
+    jp z, _cmd_not_eq
 
     cp CMD_STORE_VAL
     jp z, _cmd_store_val
@@ -467,12 +471,12 @@ _cmd_equal:
     pop hl
     or a
     sbc hl, de
-    jr nz, _ne
-    ld hl, $ffff
+    jr z, _e
+    ld hl, 0
     push hl
     jp _done
-_ne:
-    ld hl, 0
+_e:
+    ld hl, $ffff
     push hl
     jp _done
 
@@ -515,6 +519,25 @@ _cmd_less_then:
     push hl
     jp _done
 _lt:
+    ld hl, $ffff
+    push hl
+    jp _done
+
+;---------------;
+; Not Equal     ;
+;   de=var1     ;
+;   hl=var2     ;
+;---------------;
+_cmd_not_eq:
+    pop de
+    pop hl
+    or a
+    sbc hl, de
+    jr nz, _ne
+    ld hl, 0
+    push hl
+    jp _done
+_ne:
     ld hl, $ffff
     push hl
     jp _done
@@ -979,9 +1002,10 @@ cmd_map:
     defb "/", 0, CMD_DIV
     defb ".", 0, CMD_DOT
     defb ":", 0, CMD_COLON
-    defb "=", 0, CMD_EQUAL
+    defb "=", 0, CMD_EQ
     defb ">", 0, CMD_GREATER_THEN
     defb "<", 0, CMD_LESS_THEN
+    defb "<>", 0, CMD_NOT_EQ
     defb "!", 0, CMD_STORE_VAL
     defb "@", 0, CMD_GET_VAL
     defb "?", 0, CMD_SHOW_VAL
