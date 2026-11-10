@@ -14,18 +14,19 @@ CMD_LESS_THEN       equ 9
 CMD_STORE_VAL       equ 10
 CMD_GET_VAL         equ 11
 CMD_SHOW_VAL        equ 12
-CMD_DUP             equ 13
-CMD_DROP            equ 14
-CMD_SWAP            equ 15
-CMD_OVER            equ 16
-CMD_ROT             equ 17
-CMD_EMIT            equ 18
-CMD_AND             equ 19
-CMD_OR              equ 20
-CMD_INVERT          equ 21
-CMD_VAR             equ 22
-CMD_SDOT            equ 23
-CMD_UNKNOWN         equ 24
+CMD_ADD_VAL         equ 13
+CMD_DUP             equ 14
+CMD_DROP            equ 15
+CMD_SWAP            equ 16
+CMD_OVER            equ 17
+CMD_ROT             equ 18
+CMD_EMIT            equ 19
+CMD_AND             equ 20
+CMD_OR              equ 21
+CMD_INVERT          equ 22
+CMD_VAR             equ 23
+CMD_SDOT            equ 24
+CMD_UNKNOWN         equ 25
 
 PUT_NULL_TERM macro addr
     xor a
@@ -138,12 +139,12 @@ _next:
     ld a, (de)
     or a
     jr z, _unknown
-_return_loop:
+_mb_loop:
     ; if we catch the negative sign, don't move backward
     ld a, (operand_sign)
     or a
     jr nz, _cmp_loop
-
+    ; check bc, if it's zero, no moving forward.
     ld a, b
     or c
     jr z, _cmp_loop
@@ -153,7 +154,7 @@ _return_loop:
     dec bc
     ld a, b
     or c
-    jr nz, _return_loop
+    jr nz, _mb_loop
     jr _cmp_loop
 _unknown:
     ld bc, operand_buffer
@@ -196,6 +197,7 @@ _push_digit:
 
 _check_var:
     ld bc, var_dict
+    ld de, 0
 _var_loop:
     ld a, (bc)
     cp (hl)
@@ -206,6 +208,7 @@ _var_loop:
 
     inc hl
     inc bc
+    inc de
     jr _var_loop
 _s_var_name:
     ; Skip the entry name
@@ -223,11 +226,23 @@ _s_var_name:
     ld a, (bc)
     cp 0
     jp z, _cmd_unknown
+_vmb_loop:
+    ; check de, if it's zero, no moving forward.
+    ld a, d
+    or e
+    jr z, _var_loop
+
+    ; move backward the input ptr till bc is zero
+    dec hl
+    dec de
+    ld a, d
+    or e
+    jr nz, _vmb_loop
     jr _var_loop
 _var_found:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
-    
+
     inc bc
     ; bc now points addr
     ld a, (bc)
@@ -278,6 +293,9 @@ _dispatch:
 
     cp CMD_SHOW_VAL
     jp z, _cmd_show_val
+
+    cp CMD_ADD_VAL
+    jp z, _cmd_add_val
 
     cp CMD_DUP
     jp z, _cmd_dup
@@ -517,7 +535,6 @@ _csv_l:
     ; Skip the addr
     inc hl
     inc hl
-    inc hl
 
     ld a, c
     ld (hl), a
@@ -539,7 +556,6 @@ _cgv_l:
     cp 0
     jr nz, _cgv_l
 
-    inc hl
     inc hl
     inc hl
 
@@ -570,7 +586,6 @@ _cshv_l:
 
     inc bc
     inc bc
-    inc bc
 
     ld a, (bc)
     ld l, a
@@ -581,6 +596,38 @@ _cshv_l:
     call str_itoa
     call print_str
 
+    jp _done
+
+;---------------;
+; +!            ;
+;   bc=addr     ;
+;   de=val      ;
+;---------------;
+_cmd_add_val:
+    pop bc
+    pop de
+_cav_l:
+    ld a, (bc)
+    inc bc
+    cp 0
+    jr nz, _cav_l
+    ; Skip the addr
+    inc bc
+    inc bc
+
+    ld a, (bc)
+    ld l, a
+    inc bc
+    ld a, (bc)
+    ld h, a
+
+    add hl, de
+
+    ld a, h
+    ld (bc), a
+    dec bc
+    ld a, l
+    ld (bc), a
     jp _done
 
 ;---------------;
@@ -938,6 +985,7 @@ cmd_map:
     defb "!", 0, CMD_STORE_VAL
     defb "@", 0, CMD_GET_VAL
     defb "?", 0, CMD_SHOW_VAL
+    defb "+!", 0, CMD_ADD_VAL
     defb "DUP", 0, CMD_DUP
     defb "DROP", 0, CMD_DROP
     defb "SWAP", 0, CMD_SWAP
@@ -952,7 +1000,7 @@ cmd_map:
     defb CMD_UNKNOWN  
 
 shell:
-    defb KEY_CR, "FORTH>", 0
+    defb KEY_CR, "FORTHZX>", 0
 
 zero_division:
     defb KEY_CR, "infinity", 0
