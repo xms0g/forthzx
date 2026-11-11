@@ -39,16 +39,6 @@ CHECK_NULL_TERM macro addr
     or a
 endm
 
-PUSH_OPERAND macro
-    PUT_NULL_TERM bc
-
-    ld bc, operand_buffer
-    push bc
-    pop hl
-    call str_atoi
-    push hl
-endm
-
 NEGATE16 macro regh, regl
     xor a
     sub regl
@@ -192,7 +182,13 @@ _push_digit:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
     
-    PUSH_OPERAND
+    PUT_NULL_TERM bc
+
+    ld bc, operand_buffer
+    push bc
+    pop hl
+    call str_atoi
+    push hl
 
     jp _done
 
