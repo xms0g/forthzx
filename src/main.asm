@@ -56,6 +56,8 @@ endm
     include "keyboard.asm"
     
 start:
+    ld hl, banner
+    call print_str
     ld hl, shell
     call print_str
 
@@ -1019,8 +1021,12 @@ cmd_map:
     defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
+banner:
+    defb "FORTHZX v0.1", KEY_CR
+    defb "COPYRIGHT 2026 M. SAMI GURPINAR", 0
+
 shell:
-    defb KEY_CR, "FORTHZX>", 0
+    defb KEY_CR, ">", 0
 
 zero_division:
     defb KEY_CR, "infinity", 0
