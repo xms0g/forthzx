@@ -999,9 +999,28 @@ _done:
     ret
 
 clear_buffer:
-    xor a
+    ld a, (input_length)
+    push af    
+    
+    xor a                   
     ld (input_length), a
-    ld (input_buffer), a 
+
+    pop af
+    or a                    
+    ret z                  
+
+    ld c, a
+    ld b, 0
+
+    ld hl, input_buffer
+    ld (hl), 0
+    dec c
+    ld a, c
+    or a
+    ret z
+               
+    ld de, input_buffer+1
+    ldir     
     ret
 
 cmd_map:
