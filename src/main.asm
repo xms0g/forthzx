@@ -2,6 +2,7 @@ STACK_TOP           equ $7FE8
 INPUT_SIZE          equ 256
 STACK_DATA_COUNT    equ 128
 OPR_BUFFER_SIZE     equ 7
+ETX                 equ 3
 CMD_PLUS            equ 1
 CMD_MINUS           equ 2
 CMD_MULT            equ 3
@@ -232,7 +233,7 @@ _s_var_name:
     inc bc
     ld a, (bc)
     cp 0
-    jp z, _cmd_unknown
+    jp z, _check_word
 _vmb_loop:
     ; check de, if it's zero, no moving forward.
     ld a, d
@@ -262,7 +263,93 @@ _var_found:
     push hl
     
     jp _done
+;------------;
+; Check Word ;
+;------------;
+_check_word:
+    ld bc, word_dict
+    ld de, 0
+_word_loop:
+    ld a, (bc)
+    cp (hl)
+    jr nz, _s_word_name
 
+    or a
+    jr z, _word_found
+
+    inc hl
+    inc bc
+    inc de
+    jr _word_loop
+_s_word_name:
+    ; Skip the entry name
+    ld a, (bc)
+    inc bc
+    cp ETX
+    jr nz, _s_word_name
+
+    ld a, (bc)
+    cp 0
+    jp z, _cmd_unknown
+_wmb_loop:
+    ; check de, if it's zero, no moving forward.
+    ld a, d
+    or e
+    jr z, _word_loop
+
+    ; move the input ptr backward till bc is zero
+    dec hl
+    dec de
+    ld a, d
+    or e
+    jr nz, _wmb_loop
+    jr _word_loop
+_word_found:
+    inc bc
+    ; bc now points the body of the word
+    ; clear the input buffer for the body
+_cib_l:
+    ld (hl), 0
+    dec hl
+    dec de
+    ; also update input length
+    ld a, (input_length)
+    dec a
+    ld (input_length), a
+
+    ld a, e
+    cp 0
+    jr nz, _cib_l
+
+    ; copy the body
+    ld de, 0
+_wc_l:
+    ld a, (bc)
+    ld (hl), a
+    inc bc
+    inc hl
+    inc de
+    ld a, (bc)
+    cp ETX
+    jr nz, _wc_l
+    ; put hl at the start of the body
+    or a
+    sbc hl, de
+    ; save the buffer ptr
+    ld (input_buffer_ptr), hl
+
+    ; update lenght after copied the body
+    ld a, (input_length)
+    ld l, a
+    ld h, 0
+    add hl, de
+    ld a, l
+    ld (input_length), a
+
+    jp _done
+;------------------;
+; Dispatch Command ;
+;------------------;
 _dispatch:
     inc hl
     ld (input_buffer_ptr), hl
@@ -284,6 +371,9 @@ _dispatch:
 
     cp CMD_DOT
     jp z, _cmd_dot
+
+    cp CMD_COLON
+    jp z, _cmd_colon
 
     cp CMD_EQ
     jp z, _cmd_equal
@@ -468,6 +558,43 @@ _cmd_dot:
     call str_itoa
     call print_str
     jp _done
+
+;---------------;
+; colon         ;
+;---------------;
+_cmd_colon:
+    ld hl, word_dict
+    ld de, (wd_offset)
+    add hl, de
+
+    ld a, h
+    ld b, a
+    ld a, l
+    ld c, a
+    ; bc now points current offset of word_dict
+    ld hl, (input_buffer_ptr)
+    ld de, 0
+    ; hl now points word
+_wd_loop:
+    ld a, (hl)
+    ld (bc), a
+    inc hl
+    inc bc
+    inc de
+    ld a, (hl)
+    cp ';'
+    jr nz, _wd_loop
+
+    ld a, ETX
+    ld (bc), a
+
+    inc de
+
+    ld hl, (wd_offset)
+    add hl, de
+    ld (wd_offset), hl
+   
+    jp _finish
 
 ;---------------;
 ; equal         ;
@@ -1085,6 +1212,13 @@ curr_vd_addr:
     defw 0
 
 var_dict:
+    defb 0
+
+    org $9000
+wd_offset:
+    defw 0
+
+word_dict:
     defb 0
 
 end $8000
