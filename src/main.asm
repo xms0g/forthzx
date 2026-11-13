@@ -188,14 +188,14 @@ _digit_loop:
 ;------------;
 _push_digit:
     ; save the buffer ptr
+    inc hl
     ld (input_buffer_ptr), hl
     
     PUT_NULL_TERM bc
 
-    ld bc, operand_buffer
-    push bc
-    pop hl
+    ld hl, operand_buffer
     call str_atoi
+    
     push hl
 
     jp _done
@@ -248,6 +248,7 @@ _vmb_loop:
     jr _var_loop
 _var_found:
     ; save the buffer ptr
+    inc hl
     ld (input_buffer_ptr), hl
 
     inc bc
@@ -263,6 +264,7 @@ _var_found:
     jp _done
 
 _dispatch:
+    inc hl
     ld (input_buffer_ptr), hl
 
     inc de
@@ -810,7 +812,6 @@ _cmd_var:
     ; bc now points current offset of var_dict
     ld (curr_vd_addr), bc
     ld hl, (input_buffer_ptr)
-    inc hl
     ld de, 0
     ; Now hl points the variable name
 _v_loop:
@@ -858,7 +859,6 @@ _cmd_s_dot:
     ld de, 0
     ld bc, stack_data_buffer
 _stack_l:
-    xor a
     ld hl, STACK_TOP
     or a
     sbc hl, sp
@@ -945,7 +945,7 @@ _done:
     ld a, (input_length)
     ld e, a
     ld d, 0
-    or a
+   
     ; Compare it with input_length
     or a
     sbc hl, de
@@ -953,7 +953,6 @@ _done:
 
     ; More tokens available
     ld hl, (input_buffer_ptr)
-    inc hl
     ld de, cmd_map
     ld bc, 0
     jp _cmp_loop
