@@ -100,6 +100,9 @@ _run_cmd:
     ; compare input with command map
     ld de, cmd_map
     ld hl, input_buffer
+;------------;
+; Tokenizing ;
+;------------;
 _cmp_loop:
     ld a, (de)
     cp (hl)
@@ -155,6 +158,7 @@ _unknown:
     ld a, (operand_sign)
     or a
     jr z, _digit_loop
+
     ld a, '-'
     ld (bc), a
     inc bc
@@ -179,7 +183,9 @@ _digit_loop:
     CHECK_NULL_TERM hl
     jr z, _push_digit
     jr _digit_loop
-
+;------------;
+; Push Digit ;
+;------------;
 _push_digit:
     ; save the buffer ptr
     ld (input_buffer_ptr), hl
@@ -193,7 +199,9 @@ _push_digit:
     push hl
 
     jp _done
-
+;----------------;
+; Check Variable ;
+;----------------;
 _check_var:
     ld bc, var_dict
     ld de, 0
@@ -350,7 +358,7 @@ _cmd_plus:
 _cmd_minus:
     pop bc
     pop hl
-    and a
+    or a
     sbc hl, bc
     push hl
     jp _done
@@ -852,6 +860,7 @@ _cmd_s_dot:
 _stack_l:
     xor a
     ld hl, STACK_TOP
+    or a
     sbc hl, sp
     jr z, _s_process_done
     
@@ -870,6 +879,7 @@ _stack_l:
     ld a, e
     cp 0
     jr z, _done
+
     dec bc
 _s_print_l:
     ; print and push in the reverse order for stack correctness
@@ -937,6 +947,7 @@ _done:
     ld d, 0
     or a
     ; Compare it with input_length
+    or a
     sbc hl, de
     jr nc, _finish     
 
