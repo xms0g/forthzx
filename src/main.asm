@@ -598,14 +598,14 @@ _wd_loop:
 
 ;---------------;
 ; equal         ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_equal:
-    pop de
+    pop bc
     pop hl
     or a
-    sbc hl, de
+    sbc hl, bc
     jr z, _e
     ld hl, 0
     push hl
@@ -617,14 +617,14 @@ _e:
 
 ;---------------;
 ; gt            ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_greater_then:
-    pop de
+    pop bc
     pop hl
     or a
-    sbc hl, de
+    sbc hl, bc
     jr nz, _nz
     jr _gt_fin  
 _nz:
@@ -641,14 +641,14 @@ _gt_fin:
 
 ;---------------;
 ; lt            ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_less_then:
-    pop de
+    pop bc
     pop hl
     or a
-    sbc hl, de
+    sbc hl, bc
     jr c, _lt
     ld hl, 0
     push hl
@@ -660,14 +660,14 @@ _lt:
 
 ;---------------;
 ; Not Equal     ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_not_eq:
-    pop de
+    pop bc
     pop hl
     or a
-    sbc hl, de
+    sbc hl, bc
     jr nz, _ne
     ld hl, 0
     push hl
