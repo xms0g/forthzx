@@ -231,21 +231,21 @@ _s_var_name:
     ; Skip the entry value
     inc bc
     inc bc
-    ld a, (bc)
-    cp 0
-    jp z, _check_word
 _vmb_loop:
     ; check de, if it's zero, no moving forward.
     ld a, d
     or e
-    jr z, _var_loop
-
-    ; move backward the input ptr till bc is zero
+    jr nz, _mb
+    jr _check_eov
+_mb:
+    ; move backward the input ptr till de is zero
     dec hl
     dec de
-    ld a, d
-    or e
-    jr nz, _vmb_loop
+    jr _vmb_loop
+_check_eov:    
+    ld a, (bc)
+    cp 0
+    jp z, _check_word
     jr _var_loop
 _var_found:
     ; save the buffer ptr
