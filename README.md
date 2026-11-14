@@ -3,7 +3,7 @@ A Forth interpreter for the Sinclair ZX Spectrum, written in Z80 Assembly. The p
 
 Download the `TAP` file from [itch.io](https://xms0g.itch.io/forthzx).
 
-<img src="assets/forthzx.gif" alt="image" width="700" height="auto">
+<img src="assets/demo.gif" alt="image" width="700" height="auto">
 
 ## Architecture
 forthZX uses the Z80's native hardware stack (SP) as its Forth data stack, eliminating the need for a separate software-managed stack.
