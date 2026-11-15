@@ -30,8 +30,11 @@ CMD_VAR             equ 25
 CMD_IF              equ 26
 CMD_ELSE            equ 27
 CMD_THEN            equ 28
-CMD_SDOT            equ 29
-CMD_UNKNOWN         equ 30
+CMD_DO              equ 29
+CMD_LOOP            equ 30
+CMD_I               equ 31
+CMD_SDOT            equ 32
+CMD_UNKNOWN         equ 33
 
 PUT_NULL_TERM macro addr
     xor a
@@ -440,6 +443,15 @@ _dispatch:
 
     cp CMD_THEN
     jp z, _cmd_then
+
+    cp CMD_DO
+    jp z, _cmd_do
+
+    cp CMD_LOOP
+    jp z, _cmd_loop
+
+    cp CMD_I
+    jp z, _cmd_I
 
     cp CMD_SDOT
     jp z, _cmd_s_dot
@@ -1047,6 +1059,49 @@ _cmd_then:
     jp _finish
 
 ;---------------;
+; do            ;
+;   hl=start    ;
+;   bc=end      ;
+;---------------;
+_cmd_do:
+    pop hl
+    pop bc
+
+    ld (loop_start), hl
+    ld (loop_end), bc
+    
+    ld hl, (input_buffer_ptr)
+    ld (loop_start_addr), hl
+
+    jp _done
+
+;---------------;
+; loop          ;
+;---------------;
+_cmd_loop:
+    ld bc, (loop_start)
+    inc bc
+    ld (loop_start), bc
+
+    ld hl, (loop_end)
+    or a
+    sbc hl, bc
+    jr z, _l_fin
+
+    ld hl, (loop_start_addr)
+    ld (input_buffer_ptr), hl
+_l_fin:
+    jp _done
+
+;---------------;
+; I             ;
+;---------------;
+_cmd_I:
+    ld hl, (loop_start)
+    push hl
+    jp _done
+
+;---------------;
 ; .S            ;
 ;   hl=var      ;
 ;---------------;
@@ -1248,6 +1303,9 @@ cmd_map:
     defb "IF", 0, CMD_IF
     defb "ELSE", 0, CMD_ELSE
     defb "THEN", 0, CMD_THEN
+    defb "DO",0, CMD_DO
+    defb "LOOP", 0, CMD_LOOP
+    defb "I", 0, CMD_I
     defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
@@ -1263,6 +1321,15 @@ zero_division:
 
 else_str:
     defb "ELSE", 0
+
+loop_start:
+    defw 0
+
+loop_end:
+    defw 0
+
+loop_start_addr:
+    defw 0
 
 input_length:
     defb 0
