@@ -868,30 +868,30 @@ _cmd_rot:
 
 ;---------------;
 ; emit          ;
-;   bc=var      ;
+;   hl=var      ;
 ;---------------;
 _cmd_emit:
     ld a, KEY_CR
     call print_char
 
-    pop bc
-    ld a, c
+    pop hl
+    ld a, l
     call print_char
     jp _done
 
 ;---------------;
 ; and           ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_and:
-    pop de
+    pop bc
     pop hl
-    ld a, d
+    ld a, b
     and h
     ld h, a
 
-    ld a, e
+    ld a, c
     and l
     ld l, a
 
@@ -900,17 +900,17 @@ _cmd_and:
 
 ;---------------;
 ; or            ;
-;   de=var1     ;
+;   bc=var1     ;
 ;   hl=var2     ;
 ;---------------;
 _cmd_or:
-    pop de
+    pop bc
     pop hl
-    ld a, d
+    ld a, b
     or h
     ld h, a
 
-    ld a, e
+    ld a, c
     or l
     ld l, a
     
