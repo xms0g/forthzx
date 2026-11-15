@@ -27,8 +27,11 @@ CMD_AND             equ 22
 CMD_OR              equ 23
 CMD_INVERT          equ 24
 CMD_VAR             equ 25
-CMD_SDOT            equ 26
-CMD_UNKNOWN         equ 27
+CMD_IF              equ 26
+CMD_ELSE            equ 27
+CMD_THEN            equ 28
+CMD_SDOT            equ 29
+CMD_UNKNOWN         equ 30
 
 PUT_NULL_TERM macro addr
     xor a
@@ -428,6 +431,15 @@ _dispatch:
 
     cp CMD_VAR
     jp z, _cmd_var
+
+    cp CMD_IF
+    jp z, _cmd_if
+
+    cp CMD_ELSE
+    jp z, _cmd_else
+
+    cp CMD_THEN
+    jp z, _cmd_then
 
     cp CMD_SDOT
     jp z, _cmd_s_dot
@@ -976,6 +988,65 @@ _v_loop:
     jp _finish
 
 ;---------------;
+; if            ;
+;   hl=comp     ;
+;---------------;
+_cmd_if:
+    pop hl
+    ld bc, $ffff
+    
+    or a
+    sbc hl, bc
+    jp z, _done
+    
+    ld hl, (input_buffer_ptr)
+    ld bc, else_str
+_e_loop:
+    ld a, (bc)
+    cp (hl)
+    jr nz, _mv_ibp
+
+    or a
+    jr z, _found_else_body
+
+    inc bc
+_mv_ibp:
+    inc hl
+    ld a, (hl)
+    cp 0
+    jr z, _check_next
+    jr _e_loop
+_check_next:
+    push ix
+    push hl
+    pop ix
+
+    ld a, (ix+1)
+    cp 0
+    jr z, _fin_if
+    pop ix
+    jr _e_loop
+_found_else_body:
+    inc hl
+    ld (input_buffer_ptr), hl
+    jp _done
+_fin_if:
+    pop ix
+    jp _finish
+
+;---------------;
+; else          ;
+;---------------;
+_cmd_else:
+    jp _finish
+
+;---------------;
+; then          ;
+;---------------;
+_cmd_then:
+    jp _finish
+
+;---------------;
 ; .S            ;
 ;   hl=var      ;
 ;---------------;
@@ -1174,6 +1245,9 @@ cmd_map:
     defb "OR", 0, CMD_OR
     defb "INVERT", 0, CMD_INVERT
     defb "VARIABLE", 0, CMD_VAR
+    defb "IF", 0, CMD_IF
+    defb "ELSE", 0, CMD_ELSE
+    defb "THEN", 0, CMD_THEN
     defb ".S", 0, CMD_SDOT, 0
     defb CMD_UNKNOWN  
 
@@ -1186,6 +1260,9 @@ shell:
 
 zero_division:
     defb KEY_CR, "infinity", 0
+
+else_str:
+    defb "ELSE", 0
 
 input_length:
     defb 0
