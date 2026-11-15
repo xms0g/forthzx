@@ -1253,7 +1253,7 @@ cmd_map:
 
 banner:
     defb "FORTHZX v0.1", KEY_CR
-    defb "COPYRIGHT 2026 M. SAMI GURPINAR", 0
+    defb $7F, " 2026 M. SAMI GURPINAR", 0
 
 shell:
     defb KEY_CR, ">", 0
