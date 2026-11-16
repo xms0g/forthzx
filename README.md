@@ -40,6 +40,7 @@ Since the hardware stack is also used for return addresses, the interpreter care
 |`INVERT`|-|-|
 |`VARIABLE`|-|-|
 |`IF/ELSE/THEN`|-|-|
+|`DO/LOOP`|-|-|
 |`.S`|-|-|
 
 Press SYMBOL SHIFT or CONTROL only once when entering special characters.
