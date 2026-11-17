@@ -36,12 +36,12 @@ CMD_I               equ 31
 CMD_SDOT            equ 32
 CMD_UNKNOWN         equ 33
 
-PUT_NULL_TERM macro addr
+PUT_NULL_TERM_ADDR macro addr
     xor a
     ld (addr), a
 endm
 
-CHECK_NULL_TERM macro addr
+CHECK_NULL_TERM_ADDR macro addr
     ld a, (addr)
     or a
 endm
@@ -98,7 +98,7 @@ _run_cmd:
     ld hl, input_buffer
     add hl, de
   
-    PUT_NULL_TERM hl
+    PUT_NULL_TERM_ADDR hl
 
     xor a
     ld (operand_sign), a
@@ -139,11 +139,11 @@ _next:
 
     inc de
     ; de now points to the next command
-    CHECK_NULL_TERM de
+    CHECK_NULL_TERM_ADDR de
     jr z, _unknown
 _mb_loop:
     ; if we catch the negative sign, don't move backward
-    CHECK_NULL_TERM operand_sign
+    CHECK_NULL_TERM_ADDR operand_sign
     jr nz, _cmp_loop
     ; check bc, if it's zero, no moving forward.
     ld a, b
@@ -160,7 +160,7 @@ _mb_loop:
 _unknown:
     ld bc, operand_buffer
 
-    CHECK_NULL_TERM operand_sign
+    CHECK_NULL_TERM_ADDR operand_sign
     jr z, _digit_loop
 
     ld a, '-'
@@ -184,7 +184,7 @@ _digit_loop:
     inc bc
     inc hl
     ; if it's null terminator, push it
-    CHECK_NULL_TERM hl
+    CHECK_NULL_TERM_ADDR hl
     jr z, _push_digit
     jr _digit_loop
 ;------------;
@@ -195,7 +195,7 @@ _push_digit:
     inc hl
     ld (input_buffer_ptr), hl
     
-    PUT_NULL_TERM bc
+    PUT_NULL_TERM_ADDR bc
 
     ld hl, operand_buffer
     call str_atoi
@@ -246,7 +246,7 @@ _mb:
     dec de
     jr _vmb_loop
 _check_eov:    
-    CHECK_NULL_TERM bc
+    CHECK_NULL_TERM_ADDR bc
     jp z, _check_word
     jr _var_loop
 _var_found:
@@ -290,7 +290,7 @@ _s_word_name:
     cp ETX
     jr nz, _s_word_name
 
-    CHECK_NULL_TERM bc
+    CHECK_NULL_TERM_ADDR bc
     jp z, _cmd_unknown
 _wmb_loop:
     ; check de, if it's zero, no moving forward.
@@ -968,10 +968,10 @@ _v_loop:
     inc bc
     inc de
     
-    CHECK_NULL_TERM hl
+    CHECK_NULL_TERM_ADDR hl
     jr nz, _v_loop
 
-    PUT_NULL_TERM bc
+    PUT_NULL_TERM_ADDR bc
     inc bc
     ; store the current dict address 
     ld hl, (curr_vd_addr)
@@ -1018,7 +1018,7 @@ _e_loop:
     inc bc
 _mv_ibp:
     inc hl
-    CHECK_NULL_TERM hl
+    CHECK_NULL_TERM_ADDR hl
     jr z, _check_next
     jr _e_loop
 _check_next:
@@ -1133,13 +1133,13 @@ _s_print_l:
     ld h, a
 
     ; clear
-    PUT_NULL_TERM bc
+    PUT_NULL_TERM_ADDR bc
     dec bc
     
     ld a, (bc)
     ld l, a
     ; clear 
-    PUT_NULL_TERM bc
+    PUT_NULL_TERM_ADDR bc
     dec bc
 
     push hl
