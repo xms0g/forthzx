@@ -139,13 +139,11 @@ _next:
 
     inc de
     ; de now points to the next command
-    ld a, (de)
-    or a
+    CHECK_NULL_TERM de
     jr z, _unknown
 _mb_loop:
     ; if we catch the negative sign, don't move backward
-    ld a, (operand_sign)
-    or a
+    CHECK_NULL_TERM operand_sign
     jr nz, _cmp_loop
     ; check bc, if it's zero, no moving forward.
     ld a, b
@@ -162,8 +160,7 @@ _mb_loop:
 _unknown:
     ld bc, operand_buffer
 
-    ld a, (operand_sign)
-    or a
+    CHECK_NULL_TERM operand_sign
     jr z, _digit_loop
 
     ld a, '-'
@@ -249,8 +246,7 @@ _mb:
     dec de
     jr _vmb_loop
 _check_eov:    
-    ld a, (bc)
-    cp 0
+    CHECK_NULL_TERM bc
     jp z, _check_word
     jr _var_loop
 _var_found:
@@ -294,8 +290,7 @@ _s_word_name:
     cp ETX
     jr nz, _s_word_name
 
-    ld a, (bc)
-    cp 0
+    CHECK_NULL_TERM bc
     jp z, _cmd_unknown
 _wmb_loop:
     ; check de, if it's zero, no moving forward.
@@ -973,8 +968,7 @@ _v_loop:
     inc bc
     inc de
     
-    ld a, (hl)
-    cp 0
+    CHECK_NULL_TERM hl
     jr nz, _v_loop
 
     PUT_NULL_TERM bc
@@ -1024,8 +1018,7 @@ _e_loop:
     inc bc
 _mv_ibp:
     inc hl
-    ld a, (hl)
-    cp 0
+    CHECK_NULL_TERM hl
     jr z, _check_next
     jr _e_loop
 _check_next:

@@ -9,8 +9,7 @@ print_char:
 ; ---------------
 print_str:
 _loop:
-    ld a, (hl)
-    cp 0
+    CHECK_NULL_TERM hl
     jr z, _done
     call print_char
     inc hl
