@@ -46,6 +46,11 @@ CHECK_NULL_TERM_ADDR macro addr
     or a
 endm
 
+CHECK_NULL_TERM_REG macro regh, regl
+    ld a, regh
+    or regl
+endm
+
 NEGATE16 macro regh, regl
     xor a
     sub regl
@@ -146,15 +151,14 @@ _mb_loop:
     CHECK_NULL_TERM_ADDR operand_sign
     jr nz, _cmp_loop
     ; check bc, if it's zero, no moving forward.
-    ld a, b
-    or c
+    CHECK_NULL_TERM_REG b, c
     jr z, _cmp_loop
 
     ; move backward the input ptr till bc is zero
     dec hl
     dec bc
-    ld a, b
-    or c
+
+    CHECK_NULL_TERM_REG b, c
     jr nz, _mb_loop
     jr _cmp_loop
 _unknown:
@@ -236,8 +240,7 @@ _s_var_name:
     inc bc
 _vmb_loop:
     ; check de, if it's zero, no moving forward.
-    ld a, d
-    or e
+    CHECK_NULL_TERM_REG d, e
     jr nz, _mb
     jr _check_eov
 _mb:
@@ -294,15 +297,14 @@ _s_word_name:
     jp z, _cmd_unknown
 _wmb_loop:
     ; check de, if it's zero, no moving forward.
-    ld a, d
-    or e
+    CHECK_NULL_TERM_REG d, e
     jr z, _word_loop
 
     ; move the input ptr backward till bc is zero
     dec hl
     dec de
-    ld a, d
-    or e
+   
+    CHECK_NULL_TERM_REG d, e
     jr nz, _wmb_loop
     jr _word_loop
 _word_found:
@@ -318,8 +320,7 @@ _cib_l:
     dec a
     ld (input_length), a
 
-    ld a, e
-    cp 0
+    CHECK_NULL_TERM_REG d, e
     jr nz, _cib_l
 
     ; copy the body
@@ -489,8 +490,8 @@ _cmd_mult:
 _m_l:
     add hl, de
     dec bc
-    ld a, b
-    or c
+
+    CHECK_NULL_TERM_REG b, c
     jr nz, _m_l
 _m_d:
     push hl
@@ -504,8 +505,7 @@ _cmd_div:
     pop bc
     pop hl
 
-    ld a, b
-    or c
+    CHECK_NULL_TERM_REG b, c
     jr z, _zero_division
     
     xor a
@@ -1026,8 +1026,7 @@ _check_next:
     push hl
     pop ix
 
-    ld a, (ix+1)
-    cp 0
+    CHECK_NULL_TERM_ADDR ix+1
     jr z, _fin_if
     pop ix
     jr _e_loop
@@ -1122,8 +1121,7 @@ _stack_l:
     inc de
     jr _stack_l
  _s_process_done:
-    ld a, e
-    cp 0
+    CHECK_NULL_TERM_REG d, e
     jr z, _done
 
     dec bc
@@ -1156,8 +1154,7 @@ _s_print_l:
 
     dec de
 
-    ld a, e
-    or d
+    CHECK_NULL_TERM_REG d, e
     jr nz, _s_print_l
 
     jp _done
@@ -1260,8 +1257,8 @@ clear_buffer:
     ld hl, input_buffer
     ld (hl), 0
     dec c
-    ld a, c
-    or a
+   
+    CHECK_NULL_TERM_REG b, c
     ret z
                
     ld de, input_buffer+1

@@ -21,8 +21,7 @@ str_atoi:
     ld c, 1  
 
 _loop:
-    ld a, (hl)
-    or a
+    CHECK_NULL_TERM_ADDR hl
     jr z, _done
 
     sub '0'
@@ -60,7 +59,7 @@ _done:
     or a
     jr z, _positive
     ; DE = -DE (two's complement)
-    NEGATE16 d,e
+    NEGATE16 d, e
 
 _positive:
     ex de, hl
@@ -108,7 +107,7 @@ _positive:
     ld (de), a
     inc de
 
-    PUT_NULL_TERM de
+    PUT_NULL_TERM_ADDR de
 
     ld hl, byte_str
     pop ix
