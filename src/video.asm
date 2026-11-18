@@ -9,7 +9,8 @@ print_char:
 ; ---------------
 print_str:
 _loop:
-    CHECK_NULL_TERM_ADDR hl
+    ld a, (hl)
+    or a
     jr z, _done
     call print_char
     inc hl

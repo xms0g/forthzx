@@ -36,21 +36,6 @@ CMD_I               equ 31
 CMD_SDOT            equ 32
 CMD_UNKNOWN         equ 33
 
-PUT_NULL_TERM_ADDR macro addr
-    xor a
-    ld (addr), a
-endm
-
-CHECK_NULL_TERM_ADDR macro addr
-    ld a, (addr)
-    or a
-endm
-
-CHECK_NULL_TERM_REG macro regh, regl
-    ld a, regh
-    or regl
-endm
-
 NEGATE16 macro regh, regl
     xor a
     sub regl
@@ -103,7 +88,8 @@ _run_cmd:
     ld hl, input_buffer
     add hl, de
   
-    PUT_NULL_TERM_ADDR hl
+    xor a
+    ld (hl), a
 
     xor a
     ld (operand_sign), a
@@ -144,27 +130,32 @@ _next:
 
     inc de
     ; de now points to the next command
-    CHECK_NULL_TERM_ADDR de
+    ld a, (de)
+    or a
     jr z, _unknown
 _mb_loop:
     ; if we catch the negative sign, don't move backward
-    CHECK_NULL_TERM_ADDR operand_sign
+    ld a, (operand_sign)
+    or a
     jr nz, _cmp_loop
     ; check bc, if it's zero, no moving forward.
-    CHECK_NULL_TERM_REG b, c
+    ld a, b
+    or c
     jr z, _cmp_loop
 
     ; move backward the input ptr till bc is zero
     dec hl
     dec bc
 
-    CHECK_NULL_TERM_REG b, c
+    ld a, b
+    or c
     jr nz, _mb_loop
     jr _cmp_loop
 _unknown:
     ld bc, operand_buffer
 
-    CHECK_NULL_TERM_ADDR operand_sign
+    ld a, (operand_sign)
+    or a
     jr z, _digit_loop
 
     ld a, '-'
@@ -188,7 +179,8 @@ _digit_loop:
     inc bc
     inc hl
     ; if it's null terminator, push it
-    CHECK_NULL_TERM_ADDR hl
+    ld a, (hl)
+    or a
     jr z, _push_digit
     jr _digit_loop
 ;------------;
@@ -199,7 +191,8 @@ _push_digit:
     inc hl
     ld (input_buffer_ptr), hl
     
-    PUT_NULL_TERM_ADDR bc
+    xor a
+    ld (bc), a
 
     ld hl, operand_buffer
     call str_atoi
@@ -241,7 +234,8 @@ _s_var_name:
     inc ix
 _vmb_loop:
     ; check de, if it's zero, no moving forward.
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr nz, _mb
     jr _check_eov
 _mb:
@@ -249,8 +243,9 @@ _mb:
     dec hl
     dec de
     jr _vmb_loop
-_check_eov:    
-    CHECK_NULL_TERM_ADDR ix
+_check_eov:
+    ld a, (ix)
+    or a
     jp z, _check_word
     jr _var_loop
 _var_found:
@@ -296,18 +291,21 @@ _s_word_name:
     cp ETX
     jr nz, _s_word_name
 
-    CHECK_NULL_TERM_ADDR bc
+    ld a, (bc)
+    or a
     jp z, _cmd_unknown
 _wmb_loop:
     ; check de, if it's zero, no moving forward.
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr z, _word_loop
 
     ; move the input ptr backward till bc is zero
     dec hl
     dec de
    
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr nz, _wmb_loop
     jr _word_loop
 _word_found:
@@ -323,7 +321,8 @@ _cib_l:
     dec a
     ld (input_length), a
 
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr nz, _cib_l
 
     ; copy the body
@@ -494,7 +493,8 @@ _m_l:
     add hl, de
     dec bc
 
-    CHECK_NULL_TERM_REG b, c
+    ld a, b
+    or c
     jr nz, _m_l
 _m_d:
     push hl
@@ -508,7 +508,8 @@ _cmd_div:
     pop bc
     pop hl
 
-    CHECK_NULL_TERM_REG b, c
+    ld a, b
+    or c
     jr z, _zero_division
     
     xor a
@@ -992,10 +993,13 @@ _v_loop:
     inc ix
     inc de
     
-    CHECK_NULL_TERM_ADDR hl
+    ld a, (hl)
+    or a
     jr nz, _v_loop
 
-    PUT_NULL_TERM_ADDR ix
+    xor a
+    ld (ix), a
+
     inc ix
     ; store the current dict address 
     ld hl, (curr_vd_addr)
@@ -1042,7 +1046,8 @@ _e_loop:
     inc bc
 _mv_ibp:
     inc hl
-    CHECK_NULL_TERM_ADDR hl
+    ld a, (hl)
+    or a
     jr z, _check_next
     jr _e_loop
 _check_next:
@@ -1050,7 +1055,8 @@ _check_next:
     push hl
     pop ix
 
-    CHECK_NULL_TERM_ADDR ix+1
+    ld a, (ix+1)
+    or a
     jr z, _fin_if
     pop ix
     jr _e_loop
@@ -1145,7 +1151,8 @@ _stack_l:
     inc de
     jr _stack_l
  _s_process_done:
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr z, _done
 
     dec bc
@@ -1155,13 +1162,18 @@ _s_print_l:
     ld h, a
 
     ; clear
-    PUT_NULL_TERM_ADDR bc
+    xor a
+    ld (bc), a
+
     dec bc
     
     ld a, (bc)
     ld l, a
+    
     ; clear 
-    PUT_NULL_TERM_ADDR bc
+    xor a
+    ld (bc), a
+    
     dec bc
 
     push hl
@@ -1178,7 +1190,8 @@ _s_print_l:
 
     dec de
 
-    CHECK_NULL_TERM_REG d, e
+    ld a, d
+    or e
     jr nz, _s_print_l
 
     jp _done
@@ -1282,7 +1295,8 @@ clear_buffer:
     ld (hl), 0
     dec c
    
-    CHECK_NULL_TERM_REG b, c
+    ld a, b
+    or c
     ret z
                
     ld de, input_buffer+1

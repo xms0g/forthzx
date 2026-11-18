@@ -21,7 +21,8 @@ str_atoi:
     ld c, 1  
 
 _loop:
-    CHECK_NULL_TERM_ADDR hl
+    ld a, (hl)
+    or a
     jr z, _done
 
     sub '0'
@@ -107,7 +108,8 @@ _positive:
     ld (de), a
     inc de
 
-    PUT_NULL_TERM_ADDR de
+    xor a
+    ld (de), a
 
     ld hl, byte_str
     pop ix
