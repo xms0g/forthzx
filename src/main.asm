@@ -211,10 +211,11 @@ _push_digit:
 ; Check Variable ;
 ;----------------;
 _check_var:
-    ld bc, var_dict
+    push ix
+    ld ix, var_dict
     ld de, 0
 _var_loop:
-    ld a, (bc)
+    ld a, (ix)
     cp (hl)
     jr nz, _s_var_name
 
@@ -222,22 +223,22 @@ _var_loop:
     jr z, _var_found
 
     inc hl
-    inc bc
+    inc ix
     inc de
     jr _var_loop
 _s_var_name:
     ; Skip the entry name
-    ld a, (bc)
-    inc bc
+    ld a, (ix)
+    inc ix
     or a
     jr nz, _s_var_name
 
     ; Skip the entry addr
-    inc bc
-    inc bc
+    inc ix
+    inc ix
     ; Skip the entry value
-    inc bc
-    inc bc
+    inc ix
+    inc ix
 _vmb_loop:
     ; check de, if it's zero, no moving forward.
     CHECK_NULL_TERM_REG d, e
@@ -249,7 +250,7 @@ _mb:
     dec de
     jr _vmb_loop
 _check_eov:    
-    CHECK_NULL_TERM_ADDR bc
+    CHECK_NULL_TERM_ADDR ix
     jp z, _check_word
     jr _var_loop
 _var_found:
@@ -257,14 +258,15 @@ _var_found:
     inc hl
     ld (input_buffer_ptr), hl
 
-    inc bc
+    inc ix
     ; bc now points addr
-    ld a, (bc)
+    ld a, (ix+0)
     ld l, a
-    inc bc
-    ld a, (bc)
+    ld a, (ix+1)
     ld h, a
 
+    pop ix
+    
     push hl
     
     jp _done
@@ -272,6 +274,7 @@ _var_found:
 ; Check Word ;
 ;------------;
 _check_word:
+    pop ix
     ld bc, word_dict
     ld de, 0
 _word_loop:
@@ -704,21 +707,27 @@ _ne:
 _cmd_store_val:
     pop hl
     pop bc
+    push ix
+
+    ld a, h
+    ld ixh, a
+    ld a, l
+    ld ixl, a
 _csv_l:
-    ld a, (hl)
-    inc hl
+    ld a, (ix)
+    inc ix
     cp 0
     jr nz, _csv_l
     ; Skip the addr
-    inc hl
-    inc hl
+    inc ix
+    inc ix
 
     ld a, c
-    ld (hl), a
-    inc hl
+    ld (ix+0), a
     ld a, b
-    ld (hl), a
-    
+    ld (ix+1), a
+
+    pop ix
     jp _done
 
 ;---------------;
@@ -727,22 +736,28 @@ _csv_l:
 ;---------------;
 _cmd_get_val:
     pop hl
+    push ix
+    ld a, h
+    ld ixh, a
+    ld a, l
+    ld ixl, a
 _cgv_l:
-    ld a, (hl)
-    inc hl
+    ld a, (ix)
+    inc ix
     cp 0
     jr nz, _cgv_l
 
-    inc hl
-    inc hl
+    inc ix
+    inc ix
 
-    ld a, (hl)
-    ld c, a
-    inc hl
-    ld a, (hl)
-    ld b, a
+    ld a, (ix+0)
+    ld l, a
+    ld a, (ix+1)
+    ld h, a
 
-    push bc
+    pop ix
+
+    push hl
 
     jp _done
 
@@ -755,24 +770,28 @@ _cmd_show_val:
     call print_char
 
     pop bc
+    push ix
+    ld a, b
+    ld ixh, a
+    ld a, c
+    ld ixl, a
 _cshv_l:
-    ld a, (bc)
-    inc bc
+    ld a, (ix)
+    inc ix
     cp 0
     jr nz, _cshv_l
 
-    inc bc
-    inc bc
+    inc ix
+    inc ix
 
-    ld a, (bc)
+    ld a, (ix+0)
     ld l, a
-    inc bc
-    ld a, (bc)
+    ld a, (ix+1)
     ld h, a
 
     call str_itoa
     call print_str
-
+    pop ix
     jp _done
 
 ;---------------;
@@ -783,28 +802,32 @@ _cshv_l:
 _cmd_add_val:
     pop bc
     pop de
+    push ix
+    ld a, b
+    ld ixh, a
+    ld a, c
+    ld ixl, a
 _cav_l:
-    ld a, (bc)
-    inc bc
+    ld a, (ix)
+    inc ix
     cp 0
     jr nz, _cav_l
     ; Skip the addr
-    inc bc
-    inc bc
+    inc ix
+    inc ix
 
-    ld a, (bc)
+    ld a, (ix+0)
     ld l, a
-    inc bc
-    ld a, (bc)
+    ld a, (ix+1)
     ld h, a
 
     add hl, de
 
-    ld a, h
-    ld (bc), a
-    dec bc
     ld a, l
-    ld (bc), a
+    ld (ix+0), a
+    ld a, h
+    ld (ix+1), a
+    pop ix
     jp _done
 
 ;---------------;
@@ -951,35 +974,35 @@ _cmd_var:
     ; next cell 
     add hl, de
 
+    push ix
     ld a, h
-    ld b, a
+    ld ixh, a
     ld a, l
-    ld c, a
-    ; bc now points current offset of var_dict
-    ld (curr_vd_addr), bc
+    ld ixl, a
+    ; ix now points current offset of var_dict
+    ld (curr_vd_addr), ix
     ld hl, (input_buffer_ptr)
     ld de, 0
     ; Now hl points the variable name
 _v_loop:
     ld a, (hl)
-    ld (bc), a
+    ld (ix), a
     
     inc hl
-    inc bc
+    inc ix
     inc de
     
     CHECK_NULL_TERM_ADDR hl
     jr nz, _v_loop
 
-    PUT_NULL_TERM_ADDR bc
-    inc bc
+    PUT_NULL_TERM_ADDR ix
+    inc ix
     ; store the current dict address 
     ld hl, (curr_vd_addr)
     ld a, l
-    ld (bc), a
+    ld (ix+0), a
     ld a, h
-    inc bc
-    ld (bc), a
+    ld (ix+1), a
   
     inc de
     inc de
@@ -991,6 +1014,7 @@ _v_loop:
     add hl, de
     ld (vd_offset), hl
     
+    pop ix
     jp _finish
 
 ;---------------;
