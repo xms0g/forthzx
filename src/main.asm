@@ -1132,7 +1132,9 @@ _cmd_s_dot:
     call print_char
 
     ld de, 0
-    ld bc, stack_data_buffer
+    ld b, ixh
+    ld c, ixl
+    ld ix, stack_data_buffer
 _stack_l:
     ld hl, STACK_TOP
     or a
@@ -1140,14 +1142,16 @@ _stack_l:
     jr z, _s_process_done
     
     pop hl
+
     ; store 16-bit value,first low then hight (little endian)
     ld a, l
-    ld (bc), a
-    inc bc
+    ld (ix+0), a
     ld a, h
-    ld (bc), a
-    inc bc
-
+    ld (ix+1), a
+    
+    ; move 2-byte
+    inc ix
+    inc ix
     inc de
     jr _stack_l
  _s_process_done:
@@ -1155,30 +1159,28 @@ _stack_l:
     or e
     jr z, _done
 
-    dec bc
+    dec ix
 _s_print_l:
     ; print and push in the reverse order for stack correctness
-    ld a, (bc)
+    ld a, (ix)
     ld h, a
 
     ; clear
     xor a
-    ld (bc), a
-
-    dec bc
+    ld (ix), a
     
-    ld a, (bc)
+    ld a, (ix-1)
     ld l, a
     
     ; clear 
     xor a
-    ld (bc), a
+    ld (ix-1), a
     
-    dec bc
+    dec ix
+    dec ix
 
     push hl
-    
-    push bc
+
     push de
     call str_itoa
     call print_str
@@ -1186,14 +1188,14 @@ _s_print_l:
     call print_char
 
     pop de
-    pop bc
-
     dec de
 
     ld a, d
     or e
     jr nz, _s_print_l
 
+    ld ixh, b
+    ld ixl, c
     jp _done
 
 ;---------------;
