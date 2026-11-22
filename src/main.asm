@@ -27,14 +27,15 @@ CMD_AND             equ 22
 CMD_OR              equ 23
 CMD_INVERT          equ 24
 CMD_VAR             equ 25
-CMD_IF              equ 26
-CMD_ELSE            equ 27
-CMD_THEN            equ 28
-CMD_DO              equ 29
-CMD_LOOP            equ 30
-CMD_I               equ 31
-CMD_SDOT            equ 32
-CMD_UNKNOWN         equ 33
+CMD_CONS            equ 26
+CMD_IF              equ 27
+CMD_ELSE            equ 28
+CMD_THEN            equ 29
+CMD_DO              equ 30
+CMD_LOOP            equ 31
+CMD_I               equ 32
+CMD_SDOT            equ 33
+CMD_UNKNOWN         equ 34
 
 NEGATE16 macro regh, regl
     xor a
@@ -200,6 +201,7 @@ _push_digit:
     push hl
 
     jp _done
+
 ;----------------;
 ; Check Variable ;
 ;----------------;
@@ -254,16 +256,30 @@ _var_found:
     ld (input_buffer_ptr), hl
 
     inc ix
-    ; bc now points addr
+    ; ix now points addr
+    ; check if the addr is 0, if it's zero, this is constant, 
+    ; so push the value
+    ld a, (ix+0)
+    or (ix+1)
+    jr z, _push_value
+
     ld a, (ix+0)
     ld l, a
     ld a, (ix+1)
     ld h, a
-
+    jr _var_fin
+_push_value:
+    inc ix
+    inc ix
+    ; ix now points the value
+    ld a, (ix+0)
+    ld l, a
+    ld a, (ix+1)
+    ld h, a
+_var_fin:    
+    ; restore original value of ix
     pop ix
-    
     push hl
-    
     jp _done
 ;------------;
 ; Check Word ;
@@ -325,8 +341,6 @@ _cib_l:
     or e
     jr nz, _cib_l
 
-    ; copy the body
-    ld de, 0
 _wc_l:
     ld a, (bc)
     ld (hl), a
@@ -432,6 +446,9 @@ _dispatch:
 
     cp CMD_VAR
     jp z, _cmd_var
+
+    cp CMD_CONS
+    jp z, _cmd_cons
 
     cp CMD_IF
     jp z, _cmd_if
@@ -1022,6 +1039,80 @@ _v_loop:
     jp _finish
 
 ;---------------;
+; constant      ;
+;---------------;
+_cmd_cons:
+    ld hl, var_dict
+    ld de, (vd_offset)
+   
+    ; next cell 
+    add hl, de
+    ; save ix
+    ld a, ixh
+    ld b, a
+    ld a, ixl
+    ld c, a
+  
+    ld a, h
+    ld ixh, a
+    ld a, l
+    ld ixl, a
+    ; ix now points current offset of var_dict
+    ld hl, (input_buffer_ptr)
+    ld de, 0
+    ; Now hl points the variable name
+_vc_loop:
+    ld a, (hl)
+    ld (ix), a
+    
+    inc hl
+    inc ix
+    inc de
+    
+    ld a, (hl)
+    or a
+    jr nz, _vc_loop
+    
+    ; null terminator
+    xor a
+    ld (ix), a
+
+    inc ix
+    ; store the current dict address 
+    ld hl, $0000
+    ld a, l
+    ld (ix+0), a
+    ld a, h
+    ld (ix+1), a
+
+    inc ix
+    inc ix
+    ; ix now points the value
+    pop hl
+    ld a, l
+    ld (ix+0), a
+    ld a, h
+    ld (ix+1), a
+
+    inc de
+    inc de
+    inc de
+    inc de
+    inc de
+    
+    ld hl, (vd_offset)
+    add hl, de
+    ld (vd_offset), hl
+
+    ; restore ix
+    ld a, b
+    ld ixh, a
+    ld a, c
+    ld ixl, a
+    
+    jp _finish
+
+;---------------;
 ; if            ;
 ;   hl=comp     ;
 ;---------------;
@@ -1330,6 +1421,7 @@ cmd_map:
     defb "OR", 0, CMD_OR
     defb "INVERT", 0, CMD_INVERT
     defb "VARIABLE", 0, CMD_VAR
+    defb "CONSTANT", 0, CMD_CONS
     defb "IF", 0, CMD_IF
     defb "ELSE", 0, CMD_ELSE
     defb "THEN", 0, CMD_THEN
@@ -1384,14 +1476,18 @@ vd_offset:
 
 curr_vd_addr:
     defw 0
-
+;------------------------;
+; VarName | addr | value ;
+;------------------------;
 var_dict:
     defb 0
 
     org $9000
 wd_offset:
     defw 0
-
+;-----------------;
+; WordName | body ;
+;-----------------;
 word_dict:
     defb 0
 
