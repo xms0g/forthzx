@@ -39,6 +39,7 @@ Since the hardware stack is also used for return addresses, the interpreter care
 |`OR`|-|-|
 |`INVERT`|-|-|
 |`VARIABLE`|-|-|
+|`CONSTANT`|-|-|
 |`IF/ELSE/THEN`|-|-|
 |`DO/LOOP`|-|-|
 |`.S`|-|-|
