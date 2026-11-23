@@ -1,10 +1,10 @@
 ;---------------;
-; print_char    ;
+; PRINT_CHAR    ;
 ;   a=char      ;
 ;---------------;
-print_char:
+PRINT_CHAR macro
     rst $10
-    ret
+endm
 ;---------------;
 ; print_str     ;
 ;   hl=str      ;
@@ -14,7 +14,7 @@ _loop:
     ld a, (hl)
     or a
     jr z, _done
-    call print_char
+    PRINT_CHAR
     inc hl
     jr _loop
 _done:

@@ -192,6 +192,7 @@ _push_digit:
     inc hl
     ld (input_buffer_ptr), hl
     
+    ; put null terminator at the end of operand_buffer
     xor a
     ld (bc), a
 
@@ -591,7 +592,7 @@ _d_d:
 ;---------------;
 _cmd_dot:
     ld a, KEY_CR
-    call print_char
+    PRINT_CHAR
 
     ; hl=var
     pop hl
@@ -779,7 +780,7 @@ _cgv_l:
 ;---------------;
 _cmd_show_val:
     ld a, KEY_CR
-    call print_char
+    PRINT_CHAR
 
     ; bc=addr
     pop bc
@@ -911,11 +912,11 @@ _cmd_rot:
 ;---------------;
 _cmd_emit:
     ld a, KEY_CR
-    call print_char
+    PRINT_CHAR
     ; hl=var
     pop hl
     ld a, l
-    call print_char
+    PRINT_CHAR
     jp _done
 
 ;---------------;
@@ -1203,7 +1204,7 @@ _cmd_I:
 ;---------------;
 _cmd_s_dot:
     ld a, KEY_CR
-    call print_char
+    PRINT_CHAR
 
     push ix
     pop bc
@@ -1261,7 +1262,7 @@ _s_print_l:
     call str_itoa
     call print_str
     ld a, ' '
-    call print_char
+    PRINT_CHAR
 
     pop de
     dec de
@@ -1279,13 +1280,13 @@ _s_print_l:
 ;---------------;
 _cmd_unknown:
     ld a, KEY_CR
-    call print_char
+    PRINT_CHAR
     ld hl, input_buffer
     call print_str
     ld a, ' '
-    call print_char
+    PRINT_CHAR
     ld a, '?'
-    call print_char
+    PRINT_CHAR
 
     ld a, (input_length)
     ld e, a
@@ -1294,7 +1295,7 @@ _cmd_unknown:
     ld (input_buffer_ptr), hl
 _done:
     ; Find the length of the processed token
-    ; HL = current offset
+    ; hl = current offset
     ld hl, (input_buffer_ptr)
     ld de, input_buffer
     or a
@@ -1352,7 +1353,7 @@ _done:
 
     ; Print character
     ld a, b
-    call print_char
+    PRINT_CHAR
     ret
 ;-----------------------;
 ; void                  ;
