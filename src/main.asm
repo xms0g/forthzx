@@ -607,10 +607,8 @@ _cmd_colon:
     ld de, (wd_offset)
     add hl, de
 
-    ld a, h
-    ld b, a
-    ld a, l
-    ld c, a
+    push hl
+    pop bc
     ; bc now points current offset of word_dict
     ld hl, (input_buffer_ptr)
     ld de, 0
@@ -727,10 +725,8 @@ _cmd_store_val:
     pop bc
     push ix
 
-    ld a, h
-    ld ixh, a
-    ld a, l
-    ld ixl, a
+    push hl
+    pop ix
 _csv_l:
     ld a, (ix)
     inc ix
@@ -755,10 +751,9 @@ _csv_l:
 _cmd_get_val:
     pop hl
     push ix
-    ld a, h
-    ld ixh, a
-    ld a, l
-    ld ixl, a
+
+    push hl
+    pop ix
 _cgv_l:
     ld a, (ix)
     inc ix
@@ -789,10 +784,9 @@ _cmd_show_val:
 
     pop bc
     push ix
-    ld a, b
-    ld ixh, a
-    ld a, c
-    ld ixl, a
+
+    push bc
+    pop ix
 _cshv_l:
     ld a, (ix)
     inc ix
@@ -821,10 +815,9 @@ _cmd_add_val:
     pop bc
     pop de
     push ix
-    ld a, b
-    ld ixh, a
-    ld a, c
-    ld ixl, a
+
+    push bc
+    pop ix
 _cav_l:
     ld a, (ix)
     inc ix
@@ -986,17 +979,15 @@ _cmd_invert:
 ; variable      ;
 ;---------------;
 _cmd_var:
+    push ix
     ld hl, var_dict
     ld de, (vd_offset)
    
     ; next cell 
     add hl, de
 
-    push ix
-    ld a, h
-    ld ixh, a
-    ld a, l
-    ld ixl, a
+    push hl
+    pop ix
     ; ix now points current offset of var_dict
     ld (curr_vd_addr), ix
     ld hl, (input_buffer_ptr)
@@ -1047,16 +1038,13 @@ _cmd_cons:
    
     ; next cell 
     add hl, de
+    
     ; save ix
-    ld a, ixh
-    ld b, a
-    ld a, ixl
-    ld c, a
+    push ix
+    pop bc
   
-    ld a, h
-    ld ixh, a
-    ld a, l
-    ld ixl, a
+    push hl
+    pop ix
     ; ix now points current offset of var_dict
     ld hl, (input_buffer_ptr)
     ld de, 0
@@ -1105,10 +1093,8 @@ _vc_loop:
     ld (vd_offset), hl
 
     ; restore ix
-    ld a, b
-    ld ixh, a
-    ld a, c
-    ld ixl, a
+    push bc
+    pop ix
     
     jp _finish
 
@@ -1222,9 +1208,10 @@ _cmd_s_dot:
     ld a, KEY_CR
     call print_char
 
+    push ix
+    pop bc
+    
     ld de, 0
-    ld b, ixh
-    ld c, ixl
     ld ix, stack_data_buffer
 _stack_l:
     ld hl, STACK_TOP
@@ -1285,8 +1272,8 @@ _s_print_l:
     or e
     jr nz, _s_print_l
 
-    ld ixh, b
-    ld ixl, c
+    push bc
+    pop ix
     jp _done
 
 ;---------------;
