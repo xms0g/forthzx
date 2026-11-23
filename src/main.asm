@@ -472,10 +472,10 @@ _dispatch:
     jp z, _cmd_s_dot
 ;---------------;
 ; plus          ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_plus:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     add hl, bc
@@ -483,10 +483,10 @@ _cmd_plus:
     jp _done
 ;---------------;
 ; minus         ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_minus:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     or a
@@ -495,10 +495,10 @@ _cmd_minus:
     jp _done
 ; ----------------------;
 ; mult                  ;
-;   bc=multiplicand     ;
-;   de=multiplier       ;
 ;-----------------------;
 _cmd_mult:
+    ; bc=multiplicand
+    ; de=multiplier
     pop bc
     pop de
     ld hl, 0  
@@ -518,10 +518,10 @@ _m_d:
     jp _done
 ; ----------------------;
 ; div                   ;
-;   bc=divisor          ;
-;   hl=dividend         ;
 ;-----------------------;
 _cmd_div:
+    ; bc=divisor
+    ; hl=dividend
     pop bc
     pop hl
 
@@ -588,12 +588,12 @@ _d_d:
     jp _done
 ;---------------;
 ; dot           ;
-;   hl=var      ;
 ;---------------;
 _cmd_dot:
     ld a, KEY_CR
     call print_char
 
+    ; hl=var
     pop hl
     call str_itoa
     call print_str
@@ -636,10 +636,10 @@ _wd_loop:
 
 ;---------------;
 ; equal         ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_equal:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     or a
@@ -655,10 +655,10 @@ _e:
 
 ;---------------;
 ; gt            ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_greater_then:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     or a
@@ -679,10 +679,10 @@ _gt_fin:
 
 ;---------------;
 ; lt            ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_less_then:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     or a
@@ -698,10 +698,10 @@ _lt:
 
 ;---------------;
 ; Not Equal     ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_not_eq:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     or a
@@ -717,10 +717,10 @@ _ne:
 
 ;---------------;
 ; !             ;
-;   hl=addr     ;
-;   bc=val      ;
 ;---------------;
 _cmd_store_val:
+    ; hl=addr
+    ; bc=val
     pop hl
     pop bc
     push ix
@@ -746,9 +746,9 @@ _csv_l:
 
 ;---------------;
 ; @             ;
-;   hl=addr     ;
 ;---------------;
 _cmd_get_val:
+    ; hl=addr
     pop hl
     push ix
 
@@ -776,12 +776,12 @@ _cgv_l:
 
 ;---------------;
 ; ?             ;
-;   bc=addr     ;
 ;---------------;
 _cmd_show_val:
     ld a, KEY_CR
     call print_char
 
+    ; bc=addr
     pop bc
     push ix
 
@@ -808,10 +808,10 @@ _cshv_l:
 
 ;---------------;
 ; +!            ;
-;   bc=addr     ;
-;   de=val      ;
 ;---------------;
 _cmd_add_val:
+    ; bc=addr
+    ; de=val
     pop bc
     pop de
     push ix
@@ -843,7 +843,6 @@ _cav_l:
 
 ;---------------;
 ; dup           ;
-;   bc=var      ;
 ;---------------;
 _cmd_dup:
     pop bc
@@ -855,18 +854,18 @@ _cmd_dup:
     jp _done
 ;---------------;
 ; drop          ;
-;   hl=var      ;
 ;---------------;
 _cmd_drop:
+    ; hl=var
     pop hl
     jp _done
 
 ;---------------;
 ; swap          ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_swap:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
 
@@ -876,10 +875,10 @@ _cmd_swap:
 
 ;---------------;
 ; over          ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_over:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
 
@@ -893,11 +892,11 @@ _cmd_over:
 
 ;---------------;
 ; rot           ;
-;   bc=var1     ;
-;   hl=var2     ;
-;   de=var3     ;
 ;---------------;
 _cmd_rot:
+    ; bc=var1
+    ; hl=var2
+    ; de=var3
     pop bc
     pop hl
     pop de
@@ -909,12 +908,11 @@ _cmd_rot:
 
 ;---------------;
 ; emit          ;
-;   hl=var      ;
 ;---------------;
 _cmd_emit:
     ld a, KEY_CR
     call print_char
-
+    ; hl=var
     pop hl
     ld a, l
     call print_char
@@ -922,10 +920,10 @@ _cmd_emit:
 
 ;---------------;
 ; and           ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_and:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     ld a, b
@@ -941,10 +939,10 @@ _cmd_and:
 
 ;---------------;
 ; or            ;
-;   bc=var1     ;
-;   hl=var2     ;
 ;---------------;
 _cmd_or:
+    ; bc=var1
+    ; hl=var2
     pop bc
     pop hl
     ld a, b
@@ -960,9 +958,9 @@ _cmd_or:
 
 ;---------------;
 ; invert        ;
-;   hl=var      ;
 ;---------------;
 _cmd_invert:
+    ; hl=var
     pop hl
     ld a, h
     cpl
@@ -1100,9 +1098,9 @@ _vc_loop:
 
 ;---------------;
 ; if            ;
-;   hl=comp     ;
 ;---------------;
 _cmd_if:
+    ; hl=comp
     pop hl
     ld bc, $ffff
     
@@ -1159,10 +1157,10 @@ _cmd_then:
 
 ;---------------;
 ; do            ;
-;   hl=start    ;
-;   bc=end      ;
 ;---------------;
 _cmd_do:
+    ; hl=start
+    ; bc=end
     pop hl
     pop bc
 
@@ -1202,7 +1200,6 @@ _cmd_I:
 
 ;---------------;
 ; .S            ;
-;   hl=var      ;
 ;---------------;
 _cmd_s_dot:
     ld a, KEY_CR
@@ -1219,6 +1216,7 @@ _stack_l:
     sbc hl, sp
     jr z, _s_process_done
     
+    ; hl=var
     pop hl
 
     ; store 16-bit value,first low then hight (little endian)
@@ -1356,7 +1354,9 @@ _done:
     ld a, b
     call print_char
     ret
-
+;-----------------------;
+; void                  ;
+;-----------------------;
 clear_buffer:
     ld a, (input_length)
     push af    

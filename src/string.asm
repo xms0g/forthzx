@@ -1,12 +1,13 @@
 BYTE_LENGTH equ 7
 
-;-------------------------------------------;
-; Input:                                    ;
-;   hl = address of null-terminated string  ;
-;                                           ;
-; Output:                                   ;
-;   hl = parsed 16-bit integer              ;
-;-------------------------------------------;
+;-----------------------------------------------;
+; str_atoi                                      ;
+;   Input:                                      ;
+;       hl = address of null-terminated string  ;
+;                                               ;
+;   Output:                                     ;
+;       hl = parsed 16-bit integer              ;
+;-----------------------------------------------;
 
 str_atoi:
     ld de, 0
@@ -66,13 +67,14 @@ _positive:
     ex de, hl
     ret
 
-;-------------------------------------------;
-; Input:                                    ;
-;   hl = 16-bit integer to convert to string;
-;                                           ;
-; Output:                                   ;
-;   hl = address of null-terminated string  ;     
-;-------------------------------------------;
+;------------------------------------------------;
+; str_itoa                                       ;
+;   Input:                                       ;
+;       hl = 16-bit integer to convert to string ;
+;                                                ;
+;   Output:                                      ;
+;       hl = address of null-terminated string   ;     
+;------------------------------------------------;
 str_itoa:
     push ix
     ld ix, 0
@@ -91,16 +93,16 @@ str_itoa:
 _positive:
    ; Process decimal positions
     ld bc, 10000
-    call _digit
+    call digit
 
     ld bc, 1000
-    call _digit
+    call digit
 
     ld bc, 100
-    call _digit
+    call digit
 
     ld bc, 10
-    call _digit
+    call digit
 
     ; Units
     ld a, l
@@ -115,12 +117,13 @@ _positive:
     pop ix
     ret
 
-;-------------------------------------------;
-; HL = remaining value                      ; 
-; BC = divisor                              ; 
-; DE = output pointer                       ;
-;-------------------------------------------;
-_digit:
+;---------------------------------------------;
+; digit                                       ;
+;   hl = remaining value                      ; 
+;   bc = divisor                              ; 
+;   de = output pointer                       ;
+;---------------------------------------------;
+digit:
     ld a, '0'
 
 _loop:
@@ -152,7 +155,6 @@ _write_digit:
 _skip_zero:
     pop af
     ret
-
 
 byte_str:
     defs BYTE_LENGTH, 0

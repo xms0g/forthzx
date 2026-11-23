@@ -4,10 +4,11 @@ KEY_SYMBOL      equ $02
 KEY_SPACE       equ $20
 KEY_CR          equ $0D
 
-;-------------------------------------------;
-; Output:                                   ;
-;   a = 1 if a key is pressed, 0 otherwise  ;
-;-------------------------------------------;
+;-----------------------------------------------;
+; kb_poll                                       ;
+;   Output:                                     ;
+;       a = 1 if any key is pressed             ;
+;-----------------------------------------------;
 kb_poll:
     ; Detect SYMBOL SHIFT independently.
     ld bc, $7FFE
@@ -45,8 +46,9 @@ _pressed:
     ret
 
 ;-------------------------------------------;
-; Output:                                   ;
-;   a = key code of the pressed key         ;
+; kb_read                                   ;
+;   Output:                                 ;
+;       a = key code of the pressed key     ;
 ;-------------------------------------------;
 kb_read:
     ld hl, kb_map
